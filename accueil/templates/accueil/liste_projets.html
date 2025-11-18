@@ -1,0 +1,190 @@
+{% extends 'accueil/base_projets.html' %}
+
+{% block title %}Mes Projets - SIG GRDR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .projet-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        height: 100%;
+    }
+    .projet-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    .projet-header, .projet-card .card-body {
+        cursor: pointer;
+    }
+    .projet-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .page-header {
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- En-tête de page -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-project-diagram me-2"></i>Mes Projets
+            </h1>
+            <p class="text-muted mb-0">Sélectionnez un projet pour accéder à son tableau de bord</p>
+        </div>
+        <a href="{% url 'creer_projet' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus-circle me-2"></i>Nouveau Projet
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if user_projets %}
+        <div class="row g-4">
+            {% for up in user_projets %}
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card projet-card">
+                    <!-- En-tête coloré avec titre du projet -->
+                    <div class="projet-header" onclick="window.location='{% url 'selectionner_projet' up.projet.id %}'">
+                        <h5 class="mb-0">{{ up.projet.libelle }}</h5>
+                    </div>
+
+                    <!-- Corps de la card -->
+                    <div class="card-body" onclick="window.location='{% url 'selectionner_projet' up.projet.id %}'">
+                        <!-- Statut et rôle -->
+                        <div class="mb-3">
+                            <span class="badge bg-{% if up.projet.statut == 'EN_COURS' %}success{% elif up.projet.statut == 'TERMINE' %}secondary{% elif up.projet.statut == 'PLANIFIE' %}info{% else %}warning{% endif %} me-2">
+                                {{ up.projet.get_statut_display }}
+                            </span>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-user-tag me-1"></i>{{ up.role }}
+                            </span>
+                        </div>
+
+                        <!-- Informations clés -->
+                        <div class="small">
+                            <div class="mb-2">
+                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                                <strong>{{ up.projet.pays }}</strong>
+                            </div>
+                            {% if up.projet.equipe_grdr %}
+                            <div class="mb-2">
+                                <i class="fas fa-users me-2 text-muted"></i>
+                                {{ up.projet.equipe_grdr }}
+                            </div>
+                            {% endif %}
+                            <div class="mb-0">
+                                <i class="fas fa-calendar-alt me-2 text-muted"></i>
+                                {{ up.projet.date_debut|date:"d/m/Y" }} - {{ up.projet.date_fin|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pied de card avec bouton -->
+                    <div class="card-footer bg-light border-0">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'selectionner_projet' up.projet.id %}" class="btn btn-sm btn-primary flex-grow-1">
+                                Accéder au projet <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                            {% if user.is_superuser %}
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="event.stopPropagation(); confirmerSuppressionProjet({{ up.projet.id }}, '{{ up.projet.libelle|escapejs }}')"
+                                    title="Supprimer le projet">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <h4>Aucun projet assigné</h4>
+            <p>Vous n'avez pas encore accès à un projet. Contactez votre administrateur pour obtenir les accès nécessaires.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmation suppression projet (superadmin uniquement) -->
+{% if user.is_superuser %}
+<div class="modal fade" id="deleteProjetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="" id="deleteProjetForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmer la suppression du projet
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger d-flex align-items-start">
+                        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>ATTENTION : Cette action est irréversible !</strong>
+                            <p class="mb-0 mt-2">Êtes-vous sûr de vouloir supprimer le projet <strong id="delete_projet_name"></strong> ?</p>
+                        </div>
+                    </div>
+
+                    <p class="mb-2"><strong>Les éléments suivants seront définitivement supprimés :</strong></p>
+                    <ul class="text-danger small">
+                        <li>Toutes les thématiques du projet</li>
+                        <li>Tous les indicateurs et leurs cibles</li>
+                        <li>Toutes les interventions et données de terrain</li>
+                        <li>Toutes les infrastructures géolocalisées</li>
+                        <li>Tous les acteurs et bénéficiaires</li>
+                        <li>Tous les droits d'accès (UserProjet)</li>
+                        <li>Toutes les données de sécurité associées</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Supprimer définitivement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmerSuppressionProjet(projetId, projetLibelle) {
+    document.getElementById('delete_projet_name').textContent = projetLibelle;
+
+    // Définir l'action du formulaire
+    const form = document.getElementById('deleteProjetForm');
+    form.action = `/projets/${projetId}/supprimer/`;
+
+    // Afficher le modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteProjetModal'));
+    modal.show();
+}
+</script>
+{% endif %}
+
+{% endblock %}

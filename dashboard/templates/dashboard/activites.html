@@ -1,0 +1,145 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Interventions - JAMM LEYDI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestion des Interventions</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/admin/suivi/intervention/add/" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-plus me-1"></i>Nouvelle intervention
+        </a>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="commune" class="form-label">Commune</label>
+                <select name="commune" id="commune" class="form-select">
+                    <option value="">Toutes les communes</option>
+                    {% for commune in communes %}
+                    <option value="{{ commune.id }}" {% if commune_filter == commune.id|stringformat:"s" %}selected{% endif %}>
+                        {{ commune.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="statut" class="form-label">Statut</label>
+                <select name="statut" id="statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    {% for code, libelle in statuts %}
+                    <option value="{{ code }}" {% if statut_filter == code %}selected{% endif %}>
+                        {{ libelle }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filtrer
+                </button>
+                <a href="{% url 'activites' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Effacer
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des interventions -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            Liste des interventions
+            <span class="badge bg-secondary">{{ activites|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if activites %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Libellé</th>
+                            <th>Commune</th>
+                            <th>Type</th>
+                            <th>Nature</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activite in activites %}
+                        <tr>
+                            <td>
+                                <strong>{{ activite.libelle }}</strong>
+                                {% if activite.description %}
+                                <br><small class="text-muted">{{ activite.description|truncatewords:10 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ activite.commune.nom }}</span>
+                            </td>
+                            <td>{{ activite.type_intervention.libelle }}</td>
+                            <td>
+                                <span class="badge bg-{% if activite.nature == 'ACTIVITE' %}secondary{% else %}primary{% endif %}">
+                                    {{ activite.get_nature_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if activite.statut == 'PUBLIE' %}success{% elif activite.statut == 'VALIDE' %}info{% elif activite.statut == 'EN_REVISION' %}warning{% elif activite.statut == 'REJETE' %}danger{% else %}secondary{% endif %}">
+                                    {{ activite.get_statut_display }}
+                                </span>
+                            </td>
+                            <td>{{ activite.date_intervention|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="/admin/suivi/intervention/{{ activite.id }}/change/"
+                                       class="btn btn-outline-primary" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if activite.geom %}
+                                    <button type="button" class="btn btn-outline-info"
+                                            title="Géolocalisée"
+                                            onclick="showLocation('{{ activite.libelle|escapejs }}', {{ activite.geom.y }}, {{ activite.geom.x }})">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucune intervention trouvée</h5>
+                <p class="text-muted">
+                    {% if commune_filter or statut_filter %}
+                        Essayez de modifier vos filtres ou
+                    {% endif %}
+                    <a href="/admin/suivi/intervention/add/">créez votre première intervention</a>.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showLocation(libelle, lat, lng) {
+    // Afficher une alerte simple pour le moment
+    // Plus tard on pourra intégrer Leaflet ici
+    alert(`Position de "${libelle}":\nLatitude: ${lat}\nLongitude: ${lng}`);
+}
+</script>
+{% endblock %}

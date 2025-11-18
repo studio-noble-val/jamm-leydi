@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIG GRDR - Système d'Information Géographique</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .landing-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .landing-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .landing-left {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2.5rem;
+            min-height: 600px;
+        }
+        .landing-right {
+            padding: 3rem 2.5rem;
+            min-height: 600px;
+        }
+        .logo-grdr {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .feature-icon {
+            width: 50px;
+            min-width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .feature-content {
+            flex: 1;
+        }
+        @media (max-width: 991px) {
+            .landing-left, .landing-right {
+                min-height: auto;
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-card">
+            <div class="row g-0">
+                <!-- Partie gauche - Présentation -->
+                <div class="col-lg-6 landing-left">
+                    <div class="logo-grdr">
+                        <i class="fas fa-globe-africa"></i> SIG GRDR
+                    </div>
+                    <h4 class="mb-4">Système d'Information Géographique</h4>
+                    <p class="mb-4">
+                        Plateforme de suivi, pilotage et capitalisation des projets de développement du GRDR.
+                    </p>
+
+                    <div class="mt-5">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h6>Cartographie</h6>
+                                <small>Visualisez vos interventions sur une carte interactive</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h6>Suivi d'indicateurs</h6>
+                                <small>Pilotez vos projets avec des tableaux de bord dynamiques</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h6>Multi-projets</h6>
+                                <small>Gérez plusieurs projets sur une seule plateforme</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partie droite - Formulaire de connexion -->
+                <div class="col-lg-6 landing-right">
+                    <h2 class="mb-4">Connexion</h2>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'landing_page' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Nom d'utilisateur
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="username"
+                                   name="username" required autofocus>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Mot de passe
+                            </label>
+                            <input type="password" class="form-control form-control-lg" id="password"
+                                   name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-login btn-lg w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center text-muted">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Accès réservé aux équipes GRDR et partenaires
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 text-white">
+            <small>
+                <i class="fas fa-copyright me-1"></i>2025 GRDR Migration Citoyenneté Développement
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ thematique.libelle }} - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard_home' %}">Tableau de bord</a></li>
+                    <li class="breadcrumb-item active">{{ thematique.code }}</li>
+                </ol>
+            </nav>
+            <h2 class="mb-1">
+                <span class="badge bg-primary me-2">{{ thematique.code }}</span>
+                {{ thematique.libelle }}
+            </h2>
+            {% if thematique.description %}
+            <p class="text-muted mb-0">{{ thematique.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistiques des indicateurs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Indicateurs de la thématique
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if indicateurs_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Indicateur</th>
+                                    <th>Unité</th>
+                                    <th>Cible</th>
+                                    <th>Réalisé</th>
+                                    <th>Progression</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in indicateurs_stats %}
+                                <tr>
+                                    <td><span class="badge bg-info">{{ stat.indicateur.code }}</span></td>
+                                    <td>{{ stat.indicateur.libelle }}</td>
+                                    <td>{{ stat.indicateur.unite_mesure }}</td>
+                                    <td>{{ stat.cible }}</td>
+                                    <td><strong>{{ stat.realise }}</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px; min-width: 150px;">
+                                                <div class="progress-bar {% if stat.pourcentage >= 100 %}bg-success{% elif stat.pourcentage >= 75 %}bg-info{% elif stat.pourcentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ stat.pourcentage|floatformat:0 }}%"
+                                                     aria-valuenow="{{ stat.pourcentage }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ stat.pourcentage }}%
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-{% if stat.pourcentage >= 100 %}success{% elif stat.pourcentage >= 75 %}info{% elif stat.pourcentage >= 50 %}warning{% else %}danger{% endif %}">
+                                                {{ stat.pourcentage }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucun indicateur défini pour cette thématique.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interventions récentes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Interventions ({{ interventions.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if interventions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Intervention</th>
+                                    <th>Indicateur</th>
+                                    <th>Commune</th>
+                                    <th>Valeur</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for intervention in interventions %}
+                                <tr>
+                                    <td>{{ intervention.date_intervention|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <strong>{{ intervention.libelle }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ intervention.type_intervention.libelle }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ intervention.indicateur.code }}</span>
+                                    </td>
+                                    <td>{{ intervention.commune.nom }}</td>
+                                    <td>{{ intervention.valeur_quantitative }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if intervention.statut == 'TERMINE' %}success{% elif intervention.statut == 'PROGRAMME' %}primary{% elif intervention.statut == 'ANNULEE' %}danger{% else %}secondary{% endif %}">
+                                            {{ intervention.get_statut_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'liste_interventions' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Voir toutes les interventions
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucune intervention pour cette thématique.
+                        <a href="{% url 'creer_intervention' %}" class="btn btn-sm btn-primary ms-2">
+                            <i class="fas fa-plus-circle me-1"></i>Créer une intervention
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

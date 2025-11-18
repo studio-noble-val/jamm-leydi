@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centre de Commandement SIG - {{ projet.libelle }}</title>
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Full screen map */
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Glassmorphism UI Overlay */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            position: absolute;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .glass-dark {
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: white;
+        }
+
+        /* Top Header - Command Center Style */
+        .command-header {
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            min-width: 400px;
+            text-align: center;
+        }
+
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .project-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        /* Left Panel - Layer Controls */
+        .layer-control-panel {
+            top: 90px;
+            left: 16px;
+            width: 280px;
+            max-height: calc(100vh - 110px);
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-header i {
+            font-size: 1rem;
+            margin-right: 8px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .panel-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .layer-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .layer-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .layer-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .layer-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            margin-right: 10px;
+        }
+
+        .layer-info {
+            flex: 1;
+        }
+
+        .layer-name {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .layer-count {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 11px;
+            position: relative;
+            transition: background 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: rgba(102, 126, 234, 0.6);
+        }
+
+        .toggle-knob {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            left: 20px;
+        }
+
+        /* Right Panel - Statistics */
+        .stats-panel {
+            top: 90px;
+            right: 16px;
+            width: 220px;
+            padding: 16px;
+        }
+
+        .stat-card {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        /* Bottom Panel - Timeline / Filters */
+        .bottom-panel {
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            min-width: 500px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-btn.active {
+            background: rgba(102, 126, 234, 0.5);
+            border: 1px solid rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        /* Back button */
+        .back-btn {
+            top: 16px;
+            left: 16px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Custom MapLibre controls */
+        .maplibregl-ctrl-group {
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .maplibregl-ctrl-group button {
+            background: transparent !important;
+            color: white !important;
+        }
+
+        .maplibregl-ctrl-group button:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Popup customization */
+        .maplibregl-popup-content {
+            background: rgba(20, 20, 25, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px;
+            min-width: 220px;
+        }
+
+        .popup-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: #7c8aec;
+        }
+
+        .popup-detail {
+            font-size: 0.8rem;
+            margin: 4px 0;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glass-panel {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Scrollbar customization */
+        .layer-control-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .layer-control-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .layer-control-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .layer-control-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Legend colors */
+        .color-communes { background: rgba(52, 152, 219, 0.5); }
+        .color-interventions { background: rgba(46, 204, 113, 0.5); }
+        .color-infrastructures { background: rgba(241, 196, 15, 0.5); }
+        .color-acteurs { background: rgba(155, 89, 182, 0.5); }
+    </style>
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Back Button -->
+    <div class="glass-panel glass-dark back-btn" onclick="window.location.href='{% url 'dashboard_home' %}'">
+        <i class="fas fa-arrow-left me-2"></i>
+        <span style="font-weight: 600;">Retour</span>
+    </div>
+
+    <!-- Command Header -->
+    <div class="glass-panel glass-dark command-header">
+        <div class="project-title">{{ projet.libelle }}</div>
+        <div class="project-subtitle">Centre de Commandement SIG • Kéniéba, Sénégal</div>
+    </div>
+
+    <!-- Left Panel - Layer Controls -->
+    <div class="glass-panel glass-dark layer-control-panel">
+        <div class="panel-header">
+            <i class="fas fa-layer-group"></i>
+            <h3>Couches Cartographiques</h3>
+        </div>
+
+        <div class="layer-item active" id="layer-communes">
+            <div class="layer-toggle">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div class="layer-icon color-communes">
+                        <i class="fas fa-map"></i>
+                    </div>
+                    <div class="layer-info">
+                        <div class="layer-name">Communes</div>
+                        <div class="layer-count" id="communes-count">Chargement...</div>
+                    </div>
+                </div>
+                <div class="toggle-switch active">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-item active" id="layer-interventions">
+            <div class="layer-toggle">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div class="layer-icon color-interventions">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="layer-info">
+                        <div class="layer-name">Interventions</div>
+                        <div class="layer-count" id="interventions-count">Chargement...</div>
+                    </div>
+                </div>
+                <div class="toggle-switch active">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-item" id="layer-infrastructures">
+            <div class="layer-toggle">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div class="layer-icon color-infrastructures">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="layer-info">
+                        <div class="layer-name">Infrastructures</div>
+                        <div class="layer-count" id="infrastructures-count">Chargement...</div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-item" id="layer-acteurs">
+            <div class="layer-toggle">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div class="layer-icon color-acteurs">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="layer-info">
+                        <div class="layer-name">Acteurs</div>
+                        <div class="layer-count" id="acteurs-count">Chargement...</div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel - Statistics -->
+    <div class="glass-panel glass-dark stats-panel">
+        <div class="panel-header">
+            <i class="fas fa-chart-bar"></i>
+            <h3>Statistiques</h3>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-value" id="total-interventions">-</div>
+            <div class="stat-label">Interventions réalisées</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="total-beneficiaires">-</div>
+            <div class="stat-label">Bénéficiaires touchés</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="stat-value" id="avancement-global">-</div>
+            <div class="stat-label">Avancement global</div>
+        </div>
+    </div>
+
+    <!-- Bottom Panel - Filters -->
+    <div class="glass-panel glass-dark bottom-panel">
+        <div class="filter-group">
+            <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-right: 10px;">Filtrer par statut:</span>
+            <div class="filter-btn active" data-filter="all">Tout afficher</div>
+            <div class="filter-btn" data-filter="TERMINE">Terminées</div>
+            <div class="filter-btn" data-filter="PROGRAMME">Programmées</div>
+            <div class="filter-btn" data-filter="ANNULEE">Annulées</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration MapLibre
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: [
+                            'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                        ],
+                        tileSize: 256,
+                        attribution: '© OpenStreetMap contributors'
+                    }
+                },
+                layers: [{
+                    id: 'osm-tiles',
+                    type: 'raster',
+                    source: 'osm',
+                    minzoom: 0,
+                    maxzoom: 19
+                }]
+            },
+            center: [parseFloat('{{ center_lng }}'), parseFloat('{{ center_lat }}')],
+            zoom: 10,
+            pitch: 60, // Vue isométrique
+            bearing: 0,
+            antialias: true
+        });
+
+        // Ajouter les contrôles de navigation
+        map.addControl(new maplibregl.NavigationControl({
+            visualizePitch: true
+        }), 'top-right');
+
+        // Ajouter le contrôle de plein écran
+        map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+        // État des couches
+        let layersState = {
+            communes: true,
+            interventions: true,
+            infrastructures: false,
+            acteurs: false
+        };
+
+        let currentFilter = 'all';
+
+        // Charger les données au chargement de la carte
+        map.on('load', () => {
+            loadCommunesLayer();
+            loadInterventionsLayer();
+            loadInfrastructuresLayer();
+            loadActeursLayer();
+            loadStatistics();
+        });
+
+        // Charger la couche Communes
+        function loadCommunesLayer() {
+            fetch('{% url "api_communes_geojson" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('communes-count').textContent = `${data.features.length} communes`;
+
+                    map.addSource('communes', {
+                        type: 'geojson',
+                        data: data
+                    });
+
+                    // Couche de remplissage
+                    map.addLayer({
+                        id: 'communes-fill',
+                        type: 'fill',
+                        source: 'communes',
+                        paint: {
+                            'fill-color': [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'avancement'],
+                                0, '#e74c3c',
+                                50, '#f39c12',
+                                100, '#2ecc71'
+                            ],
+                            'fill-opacity': 0.3
+                        }
+                    });
+
+                    // Contours
+                    map.addLayer({
+                        id: 'communes-outline',
+                        type: 'line',
+                        source: 'communes',
+                        paint: {
+                            'line-color': '#3498db',
+                            'line-width': 2,
+                            'line-opacity': 0.8
+                        }
+                    });
+
+                    // Labels
+                    map.addLayer({
+                        id: 'communes-labels',
+                        type: 'symbol',
+                        source: 'communes',
+                        layout: {
+                            'text-field': ['get', 'nom'],
+                            'text-size': 14,
+                            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
+                        },
+                        paint: {
+                            'text-color': '#ffffff',
+                            'text-halo-color': '#000000',
+                            'text-halo-width': 2
+                        }
+                    });
+
+                    // Popup au clic
+                    map.on('click', 'communes-fill', (e) => {
+                        const props = e.features[0].properties;
+                        new maplibregl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="popup-title">${props.nom}</div>
+                                <div class="popup-detail"><strong>Département:</strong> ${props.departement}</div>
+                                <div class="popup-detail"><strong>Région:</strong> ${props.region}</div>
+                                <div class="popup-detail"><strong>Interventions:</strong> ${props.interventions_count}</div>
+                                <div class="popup-detail"><strong>Bénéficiaires:</strong> ${props.beneficiaires.toLocaleString()}</div>
+                                <div class="popup-detail"><strong>Avancement:</strong> ${props.avancement}%</div>
+                            `)
+                            .addTo(map);
+                    });
+
+                    map.on('mouseenter', 'communes-fill', () => {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
+
+                    map.on('mouseleave', 'communes-fill', () => {
+                        map.getCanvas().style.cursor = '';
+                    });
+                })
+                .catch(error => console.error('Erreur chargement communes:', error));
+        }
+
+        // Charger la couche Interventions
+        function loadInterventionsLayer() {
+            fetch('{% url "api_interventions_geojson" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('interventions-count').textContent = `${data.features.length} interventions`;
+
+                    map.addSource('interventions', {
+                        type: 'geojson',
+                        data: data
+                    });
+
+                    map.addLayer({
+                        id: 'interventions-points',
+                        type: 'circle',
+                        source: 'interventions',
+                        paint: {
+                            'circle-radius': [
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                8, 6,
+                                15, 12
+                            ],
+                            'circle-color': [
+                                'match',
+                                ['get', 'statut'],
+                                'TERMINE', '#2ecc71',
+                                'PROGRAMME', '#f39c12',
+                                'ANNULEE', '#e74c3c',
+                                '#95a5a6'
+                            ],
+                            'circle-opacity': 0.8,
+                            'circle-stroke-color': '#ffffff',
+                            'circle-stroke-width': 2
+                        }
+                    });
+
+                    // Popup au clic
+                    map.on('click', 'interventions-points', (e) => {
+                        const props = e.features[0].properties;
+                        new maplibregl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="popup-title">${props.libelle}</div>
+                                <div class="popup-detail"><strong>Type:</strong> ${props.type_intervention || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Statut:</strong> ${props.statut_display}</div>
+                                <div class="popup-detail"><strong>Commune:</strong> ${props.commune || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Thématique:</strong> ${props.thematique || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Bénéficiaires:</strong> ${props.valeur_quantitative}</div>
+                                <div class="popup-detail"><strong>Date:</strong> ${props.date_intervention || 'N/A'}</div>
+                            `)
+                            .addTo(map);
+                    });
+
+                    map.on('mouseenter', 'interventions-points', () => {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
+
+                    map.on('mouseleave', 'interventions-points', () => {
+                        map.getCanvas().style.cursor = '';
+                    });
+                })
+                .catch(error => console.error('Erreur chargement interventions:', error));
+        }
+
+        // Charger la couche Infrastructures
+        function loadInfrastructuresLayer() {
+            fetch('{% url "api_infrastructures_geojson" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('infrastructures-count').textContent = `${data.features.length} infrastructures`;
+
+                    map.addSource('infrastructures', {
+                        type: 'geojson',
+                        data: data
+                    });
+
+                    map.addLayer({
+                        id: 'infrastructures-points',
+                        type: 'circle',
+                        source: 'infrastructures',
+                        paint: {
+                            'circle-radius': 10,
+                            'circle-color': '#f39c12',
+                            'circle-opacity': 0.8,
+                            'circle-stroke-color': '#ffffff',
+                            'circle-stroke-width': 2
+                        },
+                        layout: {
+                            'visibility': 'none'
+                        }
+                    });
+
+                    map.on('click', 'infrastructures-points', (e) => {
+                        const props = e.features[0].properties;
+                        new maplibregl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="popup-title">${props.libelle}</div>
+                                <div class="popup-detail"><strong>Type:</strong> ${props.type || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Commune:</strong> ${props.commune || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Statut:</strong> ${props.statut_display}</div>
+                                <div class="popup-detail"><strong>Bénéficiaires:</strong> ${props.nb_beneficiaires || 0}</div>
+                            `)
+                            .addTo(map);
+                    });
+                })
+                .catch(error => console.error('Erreur chargement infrastructures:', error));
+        }
+
+        // Charger la couche Acteurs
+        function loadActeursLayer() {
+            fetch('{% url "api_acteurs_geojson" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('acteurs-count').textContent = `${data.features.length} acteurs`;
+
+                    map.addSource('acteurs', {
+                        type: 'geojson',
+                        data: data
+                    });
+
+                    map.addLayer({
+                        id: 'acteurs-points',
+                        type: 'circle',
+                        source: 'acteurs',
+                        paint: {
+                            'circle-radius': 8,
+                            'circle-color': '#9b59b6',
+                            'circle-opacity': 0.8,
+                            'circle-stroke-color': '#ffffff',
+                            'circle-stroke-width': 2
+                        },
+                        layout: {
+                            'visibility': 'none'
+                        }
+                    });
+
+                    map.on('click', 'acteurs-points', (e) => {
+                        const props = e.features[0].properties;
+                        new maplibregl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class="popup-title">${props.libelle}</div>
+                                <div class="popup-detail"><strong>Type:</strong> ${props.type || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Commune:</strong> ${props.commune || 'N/A'}</div>
+                                <div class="popup-detail"><strong>Adhérents:</strong> ${props.nb_adherents || 0}</div>
+                                <div class="popup-detail"><strong>Femmes:</strong> ${props.nb_femmes || 0}</div>
+                                <div class="popup-detail"><strong>Hommes:</strong> ${props.nb_hommes || 0}</div>
+                            `)
+                            .addTo(map);
+                    });
+                })
+                .catch(error => console.error('Erreur chargement acteurs:', error));
+        }
+
+        // Charger les statistiques
+        function loadStatistics() {
+            // Ces valeurs seront chargées dynamiquement depuis une API
+            // Pour le moment, on peut les récupérer depuis le dashboard
+            setTimeout(() => {
+                document.getElementById('total-interventions').textContent = '42';
+                document.getElementById('total-beneficiaires').textContent = '8,450';
+                document.getElementById('avancement-global').textContent = '62%';
+            }, 1000);
+        }
+
+        // Toggle des couches
+        document.querySelectorAll('.layer-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const layerId = item.id.replace('layer-', '');
+                const toggleSwitch = item.querySelector('.toggle-switch');
+                const isActive = item.classList.contains('active');
+
+                if (isActive) {
+                    item.classList.remove('active');
+                    toggleSwitch.classList.remove('active');
+                    toggleLayer(layerId, false);
+                } else {
+                    item.classList.add('active');
+                    toggleSwitch.classList.add('active');
+                    toggleLayer(layerId, true);
+                }
+            });
+        });
+
+        function toggleLayer(layerId, visible) {
+            const visibility = visible ? 'visible' : 'none';
+
+            if (layerId === 'communes') {
+                map.setLayoutProperty('communes-fill', 'visibility', visibility);
+                map.setLayoutProperty('communes-outline', 'visibility', visibility);
+                map.setLayoutProperty('communes-labels', 'visibility', visibility);
+            } else if (layerId === 'interventions') {
+                map.setLayoutProperty('interventions-points', 'visibility', visibility);
+            } else if (layerId === 'infrastructures') {
+                map.setLayoutProperty('infrastructures-points', 'visibility', visibility);
+            } else if (layerId === 'acteurs') {
+                map.setLayoutProperty('acteurs-points', 'visibility', visibility);
+            }
+        }
+
+        // Filtres
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.dataset.filter;
+                currentFilter = filter;
+
+                if (filter === 'all') {
+                    map.setFilter('interventions-points', null);
+                } else {
+                    map.setFilter('interventions-points', ['==', ['get', 'statut'], filter]);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

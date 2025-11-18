@@ -1,0 +1,139 @@
+{% extends 'accueil/base_projets.html' %}
+
+{% block title %}Créer un Projet - SIG GRDR{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Créer un nouveau projet
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Informations de base -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Informations de base
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="code_projet" class="form-label">Code du projet <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="code_projet" name="code_projet"
+                                       placeholder="Ex: PROJ-2025" required>
+                                <small class="text-muted">Identifiant unique</small>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="libelle" class="form-label">Titre du projet <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="libelle" name="libelle"
+                                       placeholder="Ex: Projet d'amélioration..." required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Description détaillée du projet..."></textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Localisation -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Localisation
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="pays" class="form-label">Pays</label>
+                                <input type="text" class="form-control" id="pays" name="pays" value="Sénégal">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="equipe_grdr" class="form-label">Équipe GRDR</label>
+                                <select class="form-select" id="equipe_grdr" name="equipe_grdr">
+                                    <option value="">-- Sélectionner une équipe --</option>
+                                    {% for equipe in equipes_grdr %}
+                                    <option value="{{ equipe.id }}">{{ equipe.nom }} ({{ equipe.get_type_equipe_display }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Équipe GRDR de rattachement du projet</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="zone_intervention" class="form-label">Zone d'intervention</label>
+                            <input type="text" class="form-control" id="zone_intervention" name="zone_intervention"
+                                   placeholder="Ex: Région de Kédougou">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Période et budget -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Période et budget
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="date_debut" class="form-label">Date de début <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date_debut" name="date_debut" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_fin" class="form-label">Date de fin <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date_fin" name="date_fin" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="bailleurs" class="form-label">Bailleurs</label>
+                                <input type="text" class="form-control" id="bailleurs" name="bailleurs"
+                                       placeholder="Ex: Union Européenne">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label for="budget" class="form-label">Budget</label>
+                                <input type="number" class="form-control" id="budget" name="budget"
+                                       placeholder="Ex: 2500000" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="devise" class="form-label">Devise</label>
+                                <select class="form-select" id="devise" name="devise">
+                                    <option value="EUR" selected>EUR (€)</option>
+                                    <option value="FCFA">FCFA</option>
+                                    <option value="USD">USD ($)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <a href="{% url 'liste_projets' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Créer et configurer
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-info-circle me-2"></i>
+                Après la création, vous serez guidé pour configurer les thématiques et indicateurs du projet.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

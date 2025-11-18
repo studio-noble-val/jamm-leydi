@@ -1,0 +1,125 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Configuration - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="mb-4">
+                <i class="fas fa-cog me-2 text-primary"></i>
+                Configuration du projet
+            </h2>
+
+            <div class="row g-4">
+                <!-- Card Thématiques -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm config-card">
+                        <div class="card-body text-center">
+                            <div class="config-icon mb-3">
+                                <i class="fas fa-project-diagram fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Thématiques</h5>
+                            <p class="text-muted">Définir les axes d'intervention du projet</p>
+                            <div class="my-3">
+                                <span class="badge bg-primary fs-5">{{ nb_thematiques }}</span>
+                                <small class="d-block text-muted mt-1">
+                                    thématique{% if nb_thematiques > 1 %}s{% endif %} définie{% if nb_thematiques > 1 %}s{% endif %}
+                                </small>
+                            </div>
+                            <a href="{% url 'creer_thematiques' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>Gérer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Indicateurs -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm config-card">
+                        <div class="card-body text-center">
+                            <div class="config-icon mb-3">
+                                <i class="fas fa-chart-line fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Indicateurs</h5>
+                            <p class="text-muted">Définir les indicateurs de suivi</p>
+                            <div class="my-3">
+                                <span class="badge bg-info fs-5">{{ nb_indicateurs }}</span>
+                                <small class="d-block text-muted mt-1">
+                                    indicateur{% if nb_indicateurs > 1 %}s{% endif %} défini{% if nb_indicateurs > 1 %}s{% endif %}
+                                </small>
+                            </div>
+                            <a href="{% url 'configurer_indicateurs' %}" class="btn btn-outline-info">
+                                <i class="fas fa-edit me-2"></i>Gérer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Paramètres -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm config-card">
+                        <div class="card-body text-center">
+                            <div class="config-icon mb-3">
+                                <i class="fas fa-cogs fa-3x"></i>
+                            </div>
+                            <h5 class="card-title">Paramètres</h5>
+                            <p class="text-muted">Configuration avancée du projet</p>
+                            <div class="my-3">
+                                <span class="badge bg-secondary fs-5">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <small class="d-block text-muted mt-1">
+                                    Paramètres du projet
+                                </small>
+                            </div>
+                            <a href="{% url 'configurer_parametres' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-edit me-2"></i>Gérer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aide -->
+            <div class="alert alert-info mt-5">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Besoin d'aide ?
+                </h6>
+                <p class="mb-0">
+                    Utilisez ces pages pour configurer votre projet. Commencez par définir les <strong>thématiques</strong>,
+                    puis les <strong>indicateurs</strong> pour chaque thématique, et enfin les <strong>paramètres</strong> généraux.
+                </p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.config-card {
+    border: none;
+    transition: all 0.3s;
+}
+
+.config-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+}
+
+.config-icon {
+    color: #667eea;
+}
+
+.config-card:hover .config-icon {
+    transform: scale(1.1);
+    transition: transform 0.3s;
+}
+</style>
+{% endblock %}

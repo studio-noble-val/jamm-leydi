@@ -1,0 +1,343 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if is_wizard %}Étape 1 : Thématiques{% else %}Gérer les thématiques{% endif %} - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Stepper (uniquement en mode wizard) -->
+            {% if is_wizard %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center flex-fill">
+                            <div class="step-icon active">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <small class="d-block mt-2 fw-bold text-primary">Thématiques</small>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <small class="d-block mt-2 text-muted">Indicateurs</small>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <small class="d-block mt-2 text-muted">Configuration</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-project-diagram me-2 text-primary"></i>
+                        {% if is_wizard %}Étape 1 : Définir les thématiques{% else %}Gérer les thématiques{% endif %}
+                    </h2>
+                    <p class="text-muted mb-0">Projet : <strong>{{ projet.libelle }}</strong></p>
+                </div>
+            </div>
+
+            <!-- Info box -->
+            {% if is_wizard %}
+            <div class="alert alert-info d-flex align-items-start mb-4">
+                <i class="fas fa-info-circle fa-2x me-3"></i>
+                <div>
+                    <h6 class="alert-heading mb-2">Qu'est-ce qu'une thématique ?</h6>
+                    <p class="mb-0">
+                        Les thématiques permettent d'organiser votre projet en axes d'intervention distincts.
+                        Par exemple : <strong>R1</strong> - Renforcement des capacités, <strong>R2</strong> - Cohésion sociale, etc.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Thématiques existantes -->
+            {% if thematiques_existantes %}
+            <div class="mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-list me-2"></i>
+                    Thématiques existantes ({{ thematiques_existantes.count }})
+                </h5>
+
+                {% for thematique in thematiques_existantes %}
+                <div class="card mb-3 shadow-sm thematique-existante" id="existing_{{ thematique.id }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">{{ thematique.code }}</span>
+                                    <h6 class="mb-0">{{ thematique.libelle }}</h6>
+                                </div>
+                                {% if thematique.description %}
+                                <p class="text-muted small mb-0">{{ thematique.description }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="editerThematique({{ thematique.id }}, '{{ thematique.code }}', '{{ thematique.libelle|escapejs }}', '{{ thematique.description|escapejs }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmerSuppression({{ thematique.id }}, '{{ thematique.libelle|escapejs }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <hr class="my-4">
+            {% endif %}
+
+            <!-- Section Ajouter nouvelles thématiques -->
+            <div class="mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Ajouter des thématiques
+                </h5>
+
+                <!-- Formulaire pour créer -->
+                <form method="post" id="thematiqueForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+
+                    <!-- Container pour les nouvelles thématiques -->
+                    <div id="thematiquesContainer">
+                        <!-- Les thématiques seront ajoutées ici -->
+                    </div>
+
+                    <!-- Bouton Ajouter -->
+                    <div class="text-center mb-4">
+                        <button type="button" class="btn btn-outline-primary" onclick="ajouterThematique()">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter une thématique
+                        </button>
+                    </div>
+
+                    <!-- Boutons de navigation -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% if is_wizard %}{% url 'dashboard_home' %}{% else %}{% url 'menu_configuration' %}{% endif %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>{% if is_wizard %}Annuler{% else %}Retour{% endif %}
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {% if is_wizard %}
+                                Suivant : Définir les indicateurs
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            {% else %}
+                                <i class="fas fa-save me-2"></i>
+                                Enregistrer
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'édition -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="editForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="thematique_id" id="edit_id">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Modifier la thématique
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_code" class="form-label">Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_code" name="code" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_libelle" class="form-label">Libellé <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_libelle" name="libelle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="thematique_id" id="delete_id">
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer la thématique <strong id="delete_name"></strong> ?</p>
+                    <p class="text-danger small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Cette action supprimera également tous les indicateurs associés à cette thématique.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let thematiqueCounter = 0;
+
+const exemples = [
+    { code: 'R1', libelle: 'Renforcement des capacités locales', description: 'Renforcement des capacités des acteurs locaux pour la prévention et la gestion' },
+    { code: 'R2', libelle: 'Amélioration de la cohésion sociale', description: 'Soutien aux dynamiques de cohésion sociale et amélioration de la gouvernance locale' },
+    { code: 'R3', libelle: 'Solutions locales pour la résilience', description: 'Mise en œuvre de solutions concrètes pour améliorer la résilience des populations' },
+];
+
+function ajouterThematique() {
+    thematiqueCounter++;
+    const container = document.getElementById('thematiquesContainer');
+
+    const exemple = exemples[thematiqueCounter - 1] || { code: `R${thematiqueCounter}`, libelle: '', description: '' };
+
+    const thematiqueHtml = `
+        <div class="card mb-3 shadow-sm thematique-card" id="thematique_${thematiqueCounter}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-primary mb-0">
+                        <i class="fas fa-layer-group me-2"></i>
+                        Thématique ${thematiqueCounter}
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="supprimerThematique(${thematiqueCounter})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label for="code_${thematiqueCounter}" class="form-label">Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="code_${thematiqueCounter}" name="code_${thematiqueCounter}"
+                               placeholder="R${thematiqueCounter}" value="${exemple.code}" required>
+                    </div>
+                    <div class="col-md-10">
+                        <label for="libelle_${thematiqueCounter}" class="form-label">Libellé <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="libelle_${thematiqueCounter}" name="libelle_${thematiqueCounter}"
+                               placeholder="Ex: Renforcement des capacités" value="${exemple.libelle}" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="description_${thematiqueCounter}" class="form-label">Description</label>
+                        <textarea class="form-control" id="description_${thematiqueCounter}" name="description_${thematiqueCounter}"
+                                  rows="2" placeholder="Description détaillée de la thématique...">${exemple.description}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', thematiqueHtml);
+}
+
+function supprimerThematique(id) {
+    const card = document.getElementById(`thematique_${id}`);
+    card.remove();
+}
+
+function editerThematique(id, code, libelle, description) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_code').value = code;
+    document.getElementById('edit_libelle').value = libelle;
+    document.getElementById('edit_description').value = description;
+
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+}
+
+function confirmerSuppression(id, libelle) {
+    document.getElementById('delete_id').value = id;
+    document.getElementById('delete_name').textContent = libelle;
+
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Ajouter une thématique au chargement (uniquement en mode wizard)
+{% if is_wizard %}
+document.addEventListener('DOMContentLoaded', function() {
+    ajouterThematique();
+});
+{% endif %}
+</script>
+
+<style>
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s;
+}
+
+.step-icon.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 1rem;
+}
+
+.thematique-card,
+.thematique-existante {
+    border-left: 4px solid #667eea;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.thematique-card:hover,
+.thematique-existante:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

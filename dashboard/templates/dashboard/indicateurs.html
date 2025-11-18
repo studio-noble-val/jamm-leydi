@@ -1,0 +1,67 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Indicateurs - JAMM LEYDI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Suivi des Indicateurs</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/admin/suivi/valeurindicateur/add/" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-plus me-1"></i>Saisir un indicateur
+        </a>
+    </div>
+</div>
+
+<!-- Grouper les indicateurs par thématique -->
+{% regroup indicateurs by thematique as thematiques_groupees %}
+
+{% for thematique_group in thematiques_groupees %}
+    <div class="card mb-4">
+        <div class="card-header {% if thematique_group.grouper.code == 'R1' %}bg-info text-white{% elif thematique_group.grouper.code == 'R2' %}bg-success text-white{% elif thematique_group.grouper.code == 'R3' %}bg-warning text-dark{% else %}bg-primary text-white{% endif %}">
+            <h5 class="mb-0">{{ thematique_group.grouper.code }} - {{ thematique_group.grouper.libelle }}</h5>
+            {% if thematique_group.grouper.description %}
+                <p class="mb-0 mt-1"><small>{{ thematique_group.grouper.description }}</small></p>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for indicateur in thematique_group.list %}
+                <div class="col-md-6 mb-3">
+                    <div class="border p-3 rounded">
+                        <h6>{{ indicateur.libelle }}</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">{{ indicateur.code }}</span>
+                            <span class="badge bg-secondary">{{ indicateur.valeur_actuelle.periode }}</span>
+                        </div>
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar {% if thematique_group.grouper.code == 'R1' %}bg-info{% elif thematique_group.grouper.code == 'R2' %}bg-success{% elif thematique_group.grouper.code == 'R3' %}bg-warning{% else %}bg-primary{% endif %}"
+                                 role="progressbar"
+                                 style="width: {{ indicateur.valeur_actuelle.pourcentage }}%"
+                                 aria-valuenow="{{ indicateur.valeur_actuelle.pourcentage }}"
+                                 aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                <strong>{{ indicateur.valeur_actuelle.valeur }}</strong>
+                                <span class="text-muted">{{ indicateur.unite_mesure }}</span>
+                            </span>
+                            <span class="{% if thematique_group.grouper.code == 'R1' %}text-info{% elif thematique_group.grouper.code == 'R2' %}text-success{% elif thematique_group.grouper.code == 'R3' %}text-warning{% else %}text-primary{% endif %}">
+                                {{ indicateur.valeur_actuelle.pourcentage }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+{% if not indicateurs %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Aucun indicateur configuré. Utilisez l'interface d'administration pour créer des indicateurs.
+    </div>
+{% endif %}
+
+{% endblock %}

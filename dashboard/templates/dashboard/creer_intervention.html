@@ -1,0 +1,169 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Créer une intervention - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-1">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>
+                    Nouvelle intervention
+                </h2>
+                <p class="text-muted mb-0">Projet : <strong>{{ projet.libelle }}</strong></p>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="post" id="interventionForm">
+                {% csrf_token %}
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Informations générales
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="libelle" class="form-label">Titre de l'intervention <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="libelle" name="libelle"
+                                       placeholder="Ex: Formation des agriculteurs" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nature" class="form-label">Nature <span class="text-danger">*</span></label>
+                                <select class="form-select" id="nature" name="nature" required>
+                                    <option value="ACTIVITE">Activité (formation, réunion...)</option>
+                                    <option value="REALISATION">Réalisation (infrastructure...)</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"
+                                          placeholder="Description détaillée de l'intervention..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-link me-2"></i>
+                            Rattachement
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="thematique" class="form-label">Thématique <span class="text-danger">*</span></label>
+                                <select class="form-select" id="thematique" name="thematique" required onchange="chargerIndicateurs()">
+                                    <option value="">-- Sélectionner --</option>
+                                    {% for thematique in thematiques %}
+                                    <option value="{{ thematique.id }}">{{ thematique.code }} - {{ thematique.libelle }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="indicateur" class="form-label">Indicateur <span class="text-danger">*</span></label>
+                                <select class="form-select" id="indicateur" name="indicateur" required disabled>
+                                    <option value="">-- Sélectionner une thématique d'abord --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="type_intervention" class="form-label">Type d'intervention <span class="text-danger">*</span></label>
+                                <select class="form-select" id="type_intervention" name="type_intervention" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    {% for type in types_intervention %}
+                                    <option value="{{ type.id }}">{{ type.libelle }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Localisation et valeurs
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="commune" class="form-label">Commune <span class="text-danger">*</span></label>
+                                <select class="form-select" id="commune" name="commune" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    {% for commune in communes %}
+                                    <option value="{{ commune.id }}">{{ commune.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_intervention" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date_intervention" name="date_intervention"
+                                       value="{{ today|date:'Y-m-d' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="valeur_quantitative" class="form-label">Valeur quantitative</label>
+                                <input type="number" class="form-control" id="valeur_quantitative" name="valeur_quantitative"
+                                       placeholder="Ex: 25 (personnes, entités...)" min="1" value="1">
+                                <small class="text-muted">Nombre de bénéficiaires, d'entités, etc.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'liste_interventions' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i>Créer l'intervention
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Données des indicateurs par thématique
+const indicateursParThematique = {
+    {% for thematique in thematiques %}
+    {{ thematique.id }}: [
+        {% for indicateur in thematique.indicateurs.all %}
+        {id: {{ indicateur.id }}, code: '{{ indicateur.code }}', libelle: '{{ indicateur.libelle|escapejs }}'},
+        {% endfor %}
+    ],
+    {% endfor %}
+};
+
+function chargerIndicateurs() {
+    const thematiqueId = document.getElementById('thematique').value;
+    const indicateurSelect = document.getElementById('indicateur');
+
+    // Vider le select
+    indicateurSelect.innerHTML = '<option value="">-- Sélectionner --</option>';
+
+    if (thematiqueId && indicateursParThematique[thematiqueId]) {
+        indicateurSelect.disabled = false;
+
+        indicateursParThematique[thematiqueId].forEach(ind => {
+            const option = document.createElement('option');
+            option.value = ind.id;
+            option.textContent = `${ind.code} - ${ind.libelle}`;
+            indicateurSelect.appendChild(option);
+        });
+    } else {
+        indicateurSelect.disabled = true;
+    }
+}
+</script>
+{% endblock %}

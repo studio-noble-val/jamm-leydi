@@ -1,0 +1,70 @@
+/**
+ * Styles pour améliorer l'affichage de la carte dans l'admin Intervention
+ */
+
+/* Améliorer la visibilité de la carte */
+.olMap {
+    border: 2px solid #417690;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Style pour le panneau d'instructions */
+.map-instructions {
+    background: #f8f9fa;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 4px solid #417690;
+}
+
+.map-instructions strong {
+    color: #417690;
+    font-size: 14px;
+}
+
+.map-instructions ul {
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+
+.map-instructions li {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Améliorer le curseur sur la carte */
+.olMap {
+    cursor: crosshair;
+}
+
+.olMap.olMapViewport {
+    cursor: crosshair;
+}
+
+/* Mettre en évidence les points sur la carte */
+.olFeature {
+    cursor: move !important;
+}
+
+/* Ajouter un style au survol des features */
+.olFeature:hover {
+    opacity: 0.8;
+}
+
+/* Améliorer l'affichage du champ de coordonnées */
+.vTextField[id*="geom"] {
+    font-family: monospace;
+    font-size: 12px;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Message d'aide sous le champ geom */
+.field-geom .help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+}

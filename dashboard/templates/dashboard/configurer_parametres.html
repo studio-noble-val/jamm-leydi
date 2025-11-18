@@ -1,0 +1,167 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Étape 3 : Configuration - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Stepper -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center flex-fill">
+                            <div class="step-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <small class="d-block mt-2 text-success fw-bold">Thématiques</small>
+                        </div>
+                        <div class="step-line completed"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <small class="d-block mt-2 text-success fw-bold">Indicateurs</small>
+                        </div>
+                        <div class="step-line completed"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon active">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <small class="d-block mt-2 fw-bold text-primary">Configuration</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-1">
+                    <i class="fas fa-cogs me-2 text-primary"></i>
+                    Étape 3 : Configuration finale
+                </h2>
+                <p class="text-muted mb-0">Projet : <strong>{{ projet.libelle }}</strong></p>
+            </div>
+
+            <!-- Success message -->
+            <div class="alert alert-success d-flex align-items-center mb-4">
+                <i class="fas fa-check-circle fa-3x me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-2">Configuration terminée !</h5>
+                    <p class="mb-0">
+                        Votre projet est maintenant configuré avec les thématiques et les indicateurs.
+                        Vous pouvez commencer à saisir des interventions et suivre l'avancement de votre projet.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Résumé de la configuration -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        Résumé de votre configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                Thématiques
+                            </h6>
+                            <p class="text-muted">Les axes d'intervention de votre projet ont été définis.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-info">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Indicateurs
+                            </h6>
+                            <p class="text-muted">Les indicateurs de suivi ont été configurés.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prochaines étapes -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Prochaines étapes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Définir les cibles</strong> : Définissez les valeurs cibles pour chaque indicateur
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Créer des interventions</strong> : Commencez à enregistrer les activités et réalisations
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Suivre l'avancement</strong> : Utilisez le tableau de bord pour visualiser la progression
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Formulaire (juste pour validation) -->
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Boutons de navigation -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'configurer_indicateurs' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Précédent
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check me-2"></i>
+                        Terminer la configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s;
+}
+
+.step-icon.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.step-icon.completed {
+    background: #28a745;
+    color: white;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 1rem;
+}
+
+.step-line.completed {
+    background: #28a745;
+}
+</style>
+{% endblock %}

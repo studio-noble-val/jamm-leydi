@@ -1,0 +1,432 @@
+{% extends 'dashboard/base.html' %}
+{% load dashboard_filters %}
+
+{% block title %}{% if is_wizard %}Étape 2 : Indicateurs{% else %}Gérer les indicateurs{% endif %} - {{ projet.libelle }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Stepper (uniquement en mode wizard) -->
+            {% if is_wizard %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center flex-fill">
+                            <div class="step-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <small class="d-block mt-2 text-success fw-bold">Thématiques</small>
+                        </div>
+                        <div class="step-line completed"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon active">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <small class="d-block mt-2 fw-bold text-primary">Indicateurs</small>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="text-center flex-fill">
+                            <div class="step-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <small class="d-block mt-2 text-muted">Configuration</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    {% if is_wizard %}Étape 2 : Définir les indicateurs{% else %}Gérer les indicateurs{% endif %}
+                </h2>
+                <p class="text-muted mb-0">Projet : <strong>{{ projet.libelle }}</strong></p>
+            </div>
+
+            <!-- Info box (uniquement en mode wizard) -->
+            {% if is_wizard %}
+            <div class="alert alert-info d-flex align-items-start mb-4">
+                <i class="fas fa-info-circle fa-2x me-3"></i>
+                <div>
+                    <h6 class="alert-heading mb-2">Qu'est-ce qu'un indicateur ?</h6>
+                    <p class="mb-0">
+                        Les indicateurs permettent de mesurer l'avancement et l'impact de votre projet.
+                        Par exemple : <strong>R1.1</strong> - Nombre de personnes formées, <strong>R2.1</strong> - Nombre de réunions organisées, etc.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vérifier qu'il y a des thématiques -->
+            {% if not thematiques %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>Aucune thématique définie</h5>
+                <p>Vous devez d'abord créer des thématiques avant de pouvoir ajouter des indicateurs.</p>
+                <a href="{% url 'creer_thematiques' %}" class="btn btn-primary">
+                    <i class="fas fa-project-diagram me-2"></i>Créer des thématiques
+                </a>
+            </div>
+            {% else %}
+
+            <!-- Formulaire -->
+            <form method="post" id="indicateursForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+
+                {% for thematique in thematiques %}
+                <div class="card mb-4 shadow-sm thematique-section">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-layer-group me-2"></i>
+                            {{ thematique.code }} - {{ thematique.libelle }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Indicateurs existants -->
+                        {% if indicateurs_existants|get_item:thematique.id %}
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-list me-2"></i>
+                                Indicateurs existants
+                            </h6>
+                            {% for indicateur in indicateurs_existants|get_item:thematique.id %}
+                            <div class="card mb-2 border-start border-4 border-success indicateur-existant">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-success me-2">{{ indicateur.code }}</span>
+                                                <h6 class="mb-0">{{ indicateur.libelle }}</h6>
+                                            </div>
+                                            <div class="row small text-muted">
+                                                <div class="col-md-4">
+                                                    <i class="fas fa-ruler me-1"></i>Unité : {{ indicateur.unite_mesure }}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <i class="fas fa-calculator me-1"></i>Calcul : {{ indicateur.get_type_calcul_display }}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    {% with cible=indicateur.cibles.first %}
+                                                    {% if cible %}
+                                                    <i class="fas fa-bullseye me-1"></i>Cible {{ annee_courante }} : {{ cible.valeur_cible }}
+                                                    {% else %}
+                                                    <i class="fas fa-exclamation-circle me-1 text-warning"></i>Aucune cible définie
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="editerIndicateur({{ indicateur.id }}, '{{ indicateur.code }}', '{{ indicateur.libelle|escapejs }}', '{{ indicateur.unite_mesure }}', '{{ indicateur.type_calcul }}', {% if indicateur.cibles.first %}{{ indicateur.cibles.first.valeur_cible }}{% else %}0{% endif %})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmerSuppression({{ indicateur.id }}, '{{ indicateur.libelle|escapejs }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <hr class="my-3">
+                        </div>
+                        {% endif %}
+
+                        <!-- Section ajouter nouveaux indicateurs -->
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Ajouter des indicateurs
+                        </h6>
+                        <div id="indicateurs_{{ thematique.id }}">
+                            <!-- Les nouveaux indicateurs seront ajoutés ici -->
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="ajouterIndicateur({{ thematique.id }}, '{{ thematique.code }}')">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter un indicateur
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Boutons de navigation -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'creer_thematiques' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Précédent
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        {% if is_wizard %}
+                            Suivant : Configuration finale
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        {% else %}
+                            <i class="fas fa-save me-2"></i>
+                            Enregistrer
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'édition -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="editForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="indicateur_id" id="edit_id">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Modifier l'indicateur
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="edit_code" class="form-label">Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_code" name="code" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="edit_libelle" class="form-label">Libellé <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_libelle" name="libelle" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit_unite" class="form-label">Unité</label>
+                            <select class="form-select" id="edit_unite" name="unite_mesure">
+                                <option value="Nombre">Nombre</option>
+                                <option value="Personnes">Personnes</option>
+                                <option value="Entités">Entités</option>
+                                <option value="Hectares">Hectares</option>
+                                <option value="Pourcentage">Pourcentage (%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit_type" class="form-label">Type de calcul</label>
+                            <select class="form-select" id="edit_type" name="type_calcul">
+                                <option value="SOMME">Somme des valeurs</option>
+                                <option value="MOYENNE">Moyenne des valeurs</option>
+                                <option value="DENOMBREMENT">Comptage des occurrences</option>
+                                <option value="MANUEL">Saisie manuelle uniquement</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit_cible" class="form-label">
+                                Cible {{ annee_courante }}
+                                <i class="fas fa-info-circle text-muted" title="Valeur à atteindre cette année"></i>
+                            </label>
+                            <input type="number" class="form-control" id="edit_cible" name="valeur_cible" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="indicateur_id" id="delete_id">
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer l'indicateur <strong id="delete_name"></strong> ?</p>
+                    <p class="text-danger small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Cette action supprimera également toutes les valeurs associées à cet indicateur.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const indicateurCounters = {};
+
+{% for thematique in thematiques %}
+indicateurCounters[{{ thematique.id }}] = 0;
+{% endfor %}
+
+function ajouterIndicateur(thematiqueId, thematiqueCode) {
+    indicateurCounters[thematiqueId]++;
+    const counter = indicateurCounters[thematiqueId];
+    const container = document.getElementById(`indicateurs_${thematiqueId}`);
+
+    const indicateurHtml = `
+        <div class="card mb-2 border-start border-4 border-info indicateur-card" id="indicateur_${thematiqueId}_${counter}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-info mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Nouvel indicateur
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="supprimerIndicateur(${thematiqueId}, ${counter})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="indicateur_code_${thematiqueId}_${counter}"
+                               placeholder="${thematiqueCode}.${counter}" value="${thematiqueCode}.${counter}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Libellé <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="indicateur_libelle_${thematiqueId}_${counter}"
+                               placeholder="Ex: Nombre de personnes formées" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Unité</label>
+                        <select class="form-select" name="indicateur_unite_${thematiqueId}_${counter}">
+                            <option value="Nombre">Nombre</option>
+                            <option value="Personnes">Personnes</option>
+                            <option value="Entités">Entités</option>
+                            <option value="Hectares">Hectares</option>
+                            <option value="Pourcentage">%</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Cible {{ annee_courante }}
+                            <i class="fas fa-info-circle text-muted" title="Valeur à atteindre"></i>
+                        </label>
+                        <input type="number" class="form-control" name="indicateur_cible_${thematiqueId}_${counter}"
+                               placeholder="0" min="0">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Type de calcul</label>
+                        <select class="form-select" name="indicateur_type_${thematiqueId}_${counter}">
+                            <option value="SOMME">Somme des valeurs</option>
+                            <option value="MOYENNE">Moyenne des valeurs</option>
+                            <option value="DENOMBREMENT">Comptage des occurrences</option>
+                            <option value="MANUEL">Saisie manuelle uniquement</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', indicateurHtml);
+}
+
+function supprimerIndicateur(thematiqueId, counter) {
+    const card = document.getElementById(`indicateur_${thematiqueId}_${counter}`);
+    card.remove();
+}
+
+function editerIndicateur(id, code, libelle, unite, type, cible) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_code').value = code;
+    document.getElementById('edit_libelle').value = libelle;
+    document.getElementById('edit_unite').value = unite;
+    document.getElementById('edit_type').value = type;
+    document.getElementById('edit_cible').value = cible || '';
+
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+}
+
+function confirmerSuppression(id, libelle) {
+    document.getElementById('delete_id').value = id;
+    document.getElementById('delete_name').textContent = libelle;
+
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Ajouter un indicateur par défaut pour chaque thématique au chargement (uniquement en mode wizard)
+{% if is_wizard %}
+document.addEventListener('DOMContentLoaded', function() {
+    {% for thematique in thematiques %}
+    ajouterIndicateur({{ thematique.id }}, '{{ thematique.code }}');
+    {% endfor %}
+});
+{% endif %}
+</script>
+
+<!-- Filtre Django personnalisé pour accéder aux dictionnaires -->
+{% load static %}
+<script>
+// Template filter pour accéder aux valeurs d'un dictionnaire en JavaScript
+</script>
+
+<style>
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s;
+}
+
+.step-icon.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.step-icon.completed {
+    background: #28a745;
+    color: white;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 1rem;
+}
+
+.step-line.completed {
+    background: #28a745;
+}
+
+.indicateur-card,
+.indicateur-existant {
+    transition: transform 0.2s;
+}
+
+.indicateur-card:hover,
+.indicateur-existant:hover {
+    transform: translateX(5px);
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,466 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard - {{ request.session.projet_libelle|default:"SIG GRDR" }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Tableau de bord</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <span class="badge bg-primary">Dernière mise à jour : {{ "now"|date:"d/m/Y H:i" }}</span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    {% if thematiques_stats %}
+        <!-- KPI 1 : Interventions Réalisées -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm border-0 kpi-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-0" style="font-size: 0.75rem; font-weight: 600;">Interventions Réalisées</h6>
+                        </div>
+                        <div class="kpi-icon bg-primary-light">
+                            <i class="fas fa-tasks text-primary"></i>
+                        </div>
+                    </div>
+                    <h2 class="mb-2" style="font-size: 2.5rem; font-weight: 700; color: #2c3e50;">
+                        {{ stats.interventions_realisees }}
+                    </h2>
+                    <p class="text-success mb-0" style="font-size: 0.875rem;">
+                        <i class="fas fa-arrow-up me-1"></i>
+                        +{{ stats.interventions_ce_mois }} intervention{{ stats.interventions_ce_mois|pluralize }} ce mois
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2 : Bénéficiaires Touchés -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm border-0 kpi-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-0" style="font-size: 0.75rem; font-weight: 600;">Bénéficiaires Touchés</h6>
+                        </div>
+                        <div class="kpi-icon bg-success-light">
+                            <i class="fas fa-users text-success"></i>
+                        </div>
+                    </div>
+                    <h2 class="mb-2" style="font-size: 2.5rem; font-weight: 700; color: #2c3e50;">
+                        {{ stats.beneficiaires_touches|floatformat:0 }}
+                    </h2>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">
+                        <i class="fas fa-user-check me-1"></i>
+                        Personnes impactées
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3 : Avancement Global -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm border-0 kpi-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-0" style="font-size: 0.75rem; font-weight: 600;">Avancement Global</h6>
+                        </div>
+                        <div class="kpi-icon bg-warning-light">
+                            <i class="fas fa-chart-line text-warning"></i>
+                        </div>
+                    </div>
+                    <h2 class="mb-2" style="font-size: 2.5rem; font-weight: 700; color: #2c3e50;">
+                        {{ stats.avancement_global }}%
+                    </h2>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar
+                            {% if stats.avancement_global >= 75 %}bg-success
+                            {% elif stats.avancement_global >= 50 %}bg-info
+                            {% elif stats.avancement_global >= 25 %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                            role="progressbar"
+                            style="width: {{ stats.avancement_global }}%"
+                            aria-valuenow="{{ stats.avancement_global }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Message si pas de thématiques -->
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Configurez d'abord les thématiques du projet pour voir les statistiques.
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Thématiques & Communes Section -->
+{% if thematiques_stats %}
+<div class="row mb-4">
+    <!-- Thématiques - 2/3 de l'écran -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>
+                    Avancement par Thématique
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for thematique in thematiques_stats %}
+                    <div class="col-md-4 mb-4">
+                        <a href="{% url 'thematique_detail' thematique.id %}" class="text-decoration-none">
+                            <div class="thematique-gauge text-center">
+                                <!-- Canvas pour le graphique demi-cercle -->
+                                <div style="position: relative; height: 140px; width: 100%;">
+                                    <canvas id="gauge-{{ thematique.id }}"></canvas>
+                                </div>
+                                <!-- Libellé thématique -->
+                                <h6 class="mt-2 mb-0 fw-bold text-dark">{{ thematique.libelle }}</h6>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communes - 1/3 de l'écran -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                    Avancement par Commune
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if communes_stats %}
+                    {% for commune in communes_stats %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-dark fw-semibold" style="font-size: 0.875rem;">{{ commune.nom }}</span>
+                            <span class="badge bg-{% if commune.pourcentage >= 75 %}success{% elif commune.pourcentage >= 50 %}info{% elif commune.pourcentage >= 25 %}warning{% else %}danger{% endif %}">
+                                {{ commune.pourcentage }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{% if commune.pourcentage >= 75 %}success{% elif commune.pourcentage >= 50 %}info{% elif commune.pourcentage >= 25 %}warning{% else %}danger{% endif %}"
+                                 role="progressbar"
+                                 style="width: {{ commune.pourcentage }}%"
+                                 aria-valuenow="{{ commune.pourcentage }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucune commune configurée
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Call to Action si pas de thématiques -->
+{% if not thematiques_stats %}
+<div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center text-white py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-project-diagram fa-4x"></i>
+                    </div>
+                    <h4 class="mb-3">Définir les thématiques du projet</h4>
+                    <p class="mb-4">
+                        Aucune thématique n'a encore été définie pour ce projet.<br>
+                        Commencez par structurer votre projet en définissant les thématiques d'intervention.
+                    </p>
+                    <a href="{% url 'creer_thematiques' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>Créer les thématiques
+                    </a>
+                </div>
+            </div>
+        </div>
+</div>
+{% endif %}
+
+<!-- Activités récentes -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2 text-primary"></i>
+                    Activités récentes
+                </h5>
+                <a href="{% url 'activites' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-arrow-right me-1"></i>Voir toutes
+                </a>
+            </div>
+            <div class="card-body">
+                {% if activites_recentes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Thématique</th>
+                                    <th>Titre</th>
+                                    <th>Commune</th>
+                                    <th>Type</th>
+                                    <th>Statut</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activite in activites_recentes %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">{{ activite.indicateur.thematique.code }}</span>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-{% if activite.nature == 'REALISATION' %}hammer{% else %}users{% endif %} me-2 text-muted"></i>
+                                        {{ activite.libelle }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                                        {{ activite.commune.nom }}
+                                    </td>
+                                    <td>{{ activite.type_intervention.libelle }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if activite.statut == 'TERMINE' %}bg-success
+                                            {% elif activite.statut == 'PROGRAMME' %}bg-primary
+                                            {% elif activite.statut == 'ANNULEE' %}bg-danger
+                                            {% else %}bg-secondary
+                                            {% endif %}
+                                        ">
+                                            {{ activite.get_statut_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ activite.date_creation|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>Aucune activité enregistrée</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.card-clickable {
+    cursor: pointer;
+}
+
+.card-clickable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+/* KPI Cards */
+.kpi-card {
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
+}
+
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.bg-primary-light {
+    background-color: rgba(102, 126, 234, 0.1);
+}
+
+.bg-success-light {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.bg-warning-light {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Section Thématiques */
+.row > .col-12 > h5 {
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+/* Gauges thématiques */
+.thematique-gauge {
+    position: relative;
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+.thematique-gauge:hover {
+    transform: scale(1.05);
+}
+
+.thematique-gauge canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+</style>
+
+<script>
+// Créer les graphiques en demi-cercle pour chaque thématique
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - Initialisation des graphiques');
+
+    // Attendre que Chart.js soit chargé
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    console.log('Chart.js est disponible');
+
+    // Données des thématiques
+    const thematiquesData = [
+        {% for thematique in thematiques_stats %}
+        {
+            id: {{ thematique.id|default:0 }},
+            code: "{{ thematique.code|default:'' }}",
+            pourcentage: parseFloat("{{ thematique.pourcentage|default:0|stringformat:'f' }}".replace(',', '.')),
+            libelle: "{{ thematique.libelle|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    console.log('Données thématiques:', thematiquesData);
+
+    // Créer les graphiques
+    thematiquesData.forEach(function(thematique) {
+        console.log('Création du graphique pour:', thematique);
+        createGaugeChart('gauge-' + thematique.id, thematique);
+    });
+});
+
+function createGaugeChart(canvasId, data) {
+    console.log('createGaugeChart appelé pour:', canvasId, data);
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error('Canvas non trouvé:', canvasId);
+        return;
+    }
+    console.log('Canvas trouvé:', ctx);
+
+    const percentage = data.pourcentage;
+    console.log('Pourcentage:', percentage);
+
+    // Déterminer la couleur selon le pourcentage
+    let color;
+    if (percentage >= 75) {
+        color = '#28a745'; // Vert
+    } else if (percentage >= 50) {
+        color = '#17a2b8'; // Bleu
+    } else if (percentage >= 25) {
+        color = '#ffc107'; // Orange
+    } else {
+        color = '#dc3545'; // Rouge
+    }
+
+    const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [Math.min(percentage, 100), Math.max(100 - percentage, 0)],
+                backgroundColor: [color, '#e9ecef'],
+                borderWidth: 0,
+                circumference: 180,
+                rotation: 270
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: false
+                }
+            }
+        },
+        plugins: [{
+            id: 'gaugeText',
+            afterDatasetDraw: function(chart) {
+                const ctx = chart.ctx;
+                const centerX = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+                const centerY = chart.chartArea.bottom - 10;
+
+                // Dessiner le code de la thématique (grosse puce)
+                ctx.save();
+                ctx.font = 'bold 28px Arial';
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(data.code, centerX, centerY - 20);
+
+                // Dessiner le pourcentage
+                ctx.font = 'bold 20px Arial';
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(percentage.toFixed(1) + '%', centerX, centerY + 10);
+                ctx.restore();
+            }
+        }]
+    });
+    console.log('Graphique créé:', chart);
+}
+</script>
+{% endblock %}
