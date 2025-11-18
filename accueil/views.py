@@ -1,16 +1,34 @@
 """
-Vues pour l'accueil et la sélection de projets
+Vues pour l'accueil et la sélection de projets.
+
+Ce module gère :
+- Landing page avec connexion
+- Liste et sélection des projets
+- Création de nouveaux projets
 """
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from __future__ import annotations
+
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
 from core.models import Projet, UserProjet
+from referentiels.models import EquipeGRDR
 
 
-def landing_page(request):
+def landing_page(request: HttpRequest) -> HttpResponse:
     """
-    Landing Page SIG GRDR avec formulaire de connexion
+    Landing Page SIG GRDR avec formulaire de connexion.
+
+    Si l'utilisateur est déjà connecté, redirige vers la liste des projets.
+
+    Args:
+        request: Requête HTTP (GET pour affichage, POST pour connexion)
+
+    Returns:
+        Page HTML de la landing ou redirection
     """
     # Si l'utilisateur est déjà connecté, rediriger vers la liste des projets
     if request.user.is_authenticated:
@@ -32,10 +50,18 @@ def landing_page(request):
 
 
 @login_required
-def liste_projets(request):
+def liste_projets(request: HttpRequest) -> HttpResponse:
     """
-    Liste des projets accessibles par l'utilisateur connecté
-    Affiche des cards avec les informations clés
+    Liste des projets accessibles par l'utilisateur connecté.
+
+    Affiche des cards avec les informations clés de chaque projet.
+    Les superusers voient tous les projets.
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML avec la liste des projets
     """
     # Récupérer les projets auxquels l'utilisateur a accès
     user_projets = UserProjet.objects.filter(
@@ -65,14 +91,19 @@ def liste_projets(request):
 
 
 @login_required
-def creer_projet(request):
+def creer_projet(request: HttpRequest) -> HttpResponse:
     """
-    Créer un nouveau projet et lancer le wizard de configuration
-    """
-    from datetime import date
-    from decimal import Decimal
-    from referentiels.models import EquipeGRDR
+    Créer un nouveau projet et lancer le wizard de configuration.
 
+    GET: Affiche le formulaire de création
+    POST: Crée le projet et redirige vers le wizard
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML du formulaire ou redirection vers wizard
+    """
     if request.method == 'POST':
         # Récupérer l'équipe GRDR si sélectionnée
         equipe_grdr_id = request.POST.get('equipe_grdr')
@@ -129,10 +160,18 @@ def creer_projet(request):
 
 
 @login_required
-def selectionner_projet(request, projet_id):
+def selectionner_projet(request: HttpRequest, projet_id: int) -> HttpResponse:
     """
-    Sélectionner un projet et stocker dans la session
-    Vérifie que l'utilisateur a accès au projet
+    Sélectionner un projet et stocker dans la session.
+
+    Vérifie que l'utilisateur a accès au projet avant sélection.
+
+    Args:
+        request: Requête HTTP
+        projet_id: ID du projet à sélectionner
+
+    Returns:
+        Redirection vers le dashboard ou la liste des projets
     """
     projet = get_object_or_404(Projet, id=projet_id, actif=True)
 
@@ -158,10 +197,18 @@ def selectionner_projet(request, projet_id):
 
 
 @login_required
-def supprimer_projet(request, projet_id):
+def supprimer_projet(request: HttpRequest, projet_id: int) -> HttpResponse:
     """
-    Supprimer un projet (réservé aux superusers)
-    ATTENTION : Supprime en cascade toutes les données associées
+    Supprimer un projet (réservé aux superusers).
+
+    ATTENTION : Supprime en cascade toutes les données associées.
+
+    Args:
+        request: Requête HTTP (POST pour confirmation)
+        projet_id: ID du projet à supprimer
+
+    Returns:
+        Redirection vers la liste des projets
     """
     # Vérifier que l'utilisateur est superuser
     if not request.user.is_superuser:

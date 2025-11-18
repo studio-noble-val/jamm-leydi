@@ -1,11 +1,29 @@
+"""
+Vues publiques de la plateforme JAMM LEYDI.
+
+Ce module gère les pages accessibles sans authentification.
+"""
+from __future__ import annotations
+
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
-from django.db.models import Count
+
 from referentiels.models import Commune
-from suivi.models import Indicateur, Intervention, ValeurIndicateur
+from suivi.models import CibleIndicateur, Indicateur, Intervention, ValeurIndicateur
 
 
-def public_home(request):
-    """Page d'accueil publique"""
+def public_home(request: HttpRequest) -> HttpResponse:
+    """
+    Page d'accueil publique.
+
+    Affiche les statistiques générales du projet.
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML d'accueil publique
+    """
 
     # Statistiques publiques
     stats = {
@@ -25,8 +43,18 @@ def public_home(request):
     return render(request, 'public/home.html', context)
 
 
-def carte_view(request):
-    """Vue carte interactive"""
+def carte_view(request: HttpRequest) -> HttpResponse:
+    """
+    Vue carte interactive publique.
+
+    Affiche les interventions publiées sur une carte.
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML avec la carte interactive
+    """
 
     # Interventions publiées avec géolocalisation
     activites = Intervention.objects.filter(
@@ -50,9 +78,16 @@ def carte_view(request):
     return render(request, 'public/carte.html', context)
 
 
-def public_indicateurs(request):
-    """Indicateurs publics"""
+def public_indicateurs(request: HttpRequest) -> HttpResponse:
+    """
+    Indicateurs publics avec pourcentages d'avancement.
 
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML listant les indicateurs publics
+    """
     # Tous les indicateurs avec leurs valeurs
     indicateurs = Indicateur.objects.select_related('thematique').all()
 
@@ -65,7 +100,6 @@ def public_indicateurs(request):
 
         if derniere_valeur:
             # Récupérer la cible
-            from suivi.models import CibleIndicateur
             cible = CibleIndicateur.objects.filter(
                 indicateur=indicateur,
                 commune__isnull=True
@@ -86,8 +120,18 @@ def public_indicateurs(request):
     return render(request, 'public/indicateurs.html', context)
 
 
-def evenements_view(request):
-    """Liste des événements et webstories"""
+def evenements_view(request: HttpRequest) -> HttpResponse:
+    """
+    Liste des événements et webstories.
+
+    TODO: Implémenter le modèle Evenement.
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML listant les événements
+    """
 
     # TODO: Implémenter le modèle Evenement pour les webstories
     evenements = []

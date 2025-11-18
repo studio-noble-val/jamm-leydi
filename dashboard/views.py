@@ -1,24 +1,59 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
+"""
+Vues du tableau de bord administrateur.
+
+Ce module contient toutes les vues pour :
+- Dashboard principal avec KPIs
+- Gestion des thématiques et indicateurs
+- Gestion des interventions
+- API GeoJSON pour la cartographie
+"""
+from __future__ import annotations
+
+import json
+from datetime import date, datetime
+from typing import Any
+
 from django.contrib import messages
-from django.db.models import Count, Sum
-from referentiels.models import Commune
-from suivi.models import Indicateur, Intervention, ValeurIndicateur
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Sum
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from core.models import Projet
+from geo.models import Acteur, Infrastructure
+from referentiels.models import Commune, CommuneGeom, TypeIntervention
+from suivi.models import (
+    CibleIndicateur,
+    Indicateur,
+    Intervention,
+    Thematique,
+    ValeurIndicateur,
+)
 
 
 @login_required
-def dashboard_home(request):
-    """Page d'accueil du tableau de bord administrateur"""
+def dashboard_home(request: HttpRequest) -> HttpResponse:
+    """
+    Page d'accueil du tableau de bord administrateur.
 
+    Affiche les KPIs principaux du projet :
+    - Interventions réalisées
+    - Bénéficiaires touchés
+    - Avancement global par thématique
+    - Statistiques par commune
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        Page HTML du dashboard avec contexte des statistiques
+    """
     # Récupérer le projet depuis la session
     projet_id = request.session.get('projet_id')
 
     # Filtrer par projet si disponible
     if projet_id:
-        from suivi.models import Thematique, CibleIndicateur
-        from core.models import Projet
-
         projet = Projet.objects.get(id=projet_id)
         interventions = Intervention.objects.filter(projet_id=projet_id)
         indicateurs_filter = {'indicateur__projet_id': projet_id}
@@ -27,7 +62,6 @@ def dashboard_home(request):
         interventions_realisees = interventions.filter(statut='TERMINE').count()
 
         # Interventions réalisées ce mois
-        from datetime import datetime, timedelta
         debut_mois = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         interventions_ce_mois = interventions.filter(
             statut='TERMINE',
@@ -84,7 +118,6 @@ def dashboard_home(request):
             avancement_global = 0
 
         # Statistiques par commune
-        from referentiels.models import Commune
         communes = Commune.objects.filter(
             commune_projets__projet_id=projet_id
         ).distinct().order_by('nom')
@@ -150,9 +183,19 @@ def dashboard_home(request):
 
 
 @login_required
-def indicateurs_view(request):
-    """Vue des indicateurs de suivi"""
+def indicateurs_view(request: HttpRequest) -> HttpResponse:
+    """
+    Vue des indicateurs de suivi du projet.
 
+    Affiche la liste des indicateurs avec leurs valeurs actuelles
+    et pourcentages d'avancement.
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        Page HTML listant les indicateurs
+    """
     # Récupérer le projet depuis la session
     projet_id = request.session.get('projet_id')
 
@@ -163,15 +206,14 @@ def indicateurs_view(request):
         indicateurs = Indicateur.objects.select_related('thematique', 'projet').all()
 
     # Calculer les valeurs actuelles pour chaque indicateur
-    def get_valeur_actuelle(indicateur):
-        """Calculer la valeur actuelle d'un indicateur"""
+    def get_valeur_actuelle(indicateur: Indicateur) -> dict[str, Any]:
+        """Calculer la valeur actuelle d'un indicateur."""
         derniere_valeur = ValeurIndicateur.objects.filter(
             indicateur=indicateur
         ).order_by('-date_mesure').first()
 
         if derniere_valeur:
             # Récupérer la cible (globale, sans commune spécifique)
-            from suivi.models import CibleIndicateur
             cible = CibleIndicateur.objects.filter(
                 indicateur=indicateur,
                 commune__isnull=True
@@ -200,9 +242,18 @@ def indicateurs_view(request):
 
 
 @login_required
-def activites_view(request):
-    """Vue de gestion des activités"""
+def activites_view(request: HttpRequest) -> HttpResponse:
+    """
+    Vue de gestion des activités/interventions.
 
+    Permet de lister et filtrer les interventions par commune et statut.
+
+    Args:
+        request: Requête HTTP avec filtres GET (commune, statut)
+
+    Returns:
+        Page HTML listant les activités avec filtres
+    """
     # Récupérer le projet depuis la session
     projet_id = request.session.get('projet_id')
 
@@ -240,12 +291,19 @@ def activites_view(request):
 
 
 @login_required
-def creer_thematiques_view(request):
-    """Gérer les thématiques du projet (créer, éditer, supprimer)"""
-    from suivi.models import Thematique
-    from core.models import Projet
-    from django.contrib import messages
+def creer_thematiques_view(request: HttpRequest) -> HttpResponse:
+    """
+    Gérer les thématiques du projet (créer, éditer, supprimer).
 
+    En mode wizard (aucune thématique), redirige vers indicateurs après création.
+    Sinon, permet la gestion CRUD des thématiques existantes.
+
+    Args:
+        request: Requête HTTP (GET pour affichage, POST pour actions)
+
+    Returns:
+        Page HTML de gestion ou redirection après action
+    """
     projet_id = request.session.get('projet_id')
 
     if not projet_id:
@@ -330,11 +388,19 @@ def creer_thematiques_view(request):
 
 
 @login_required
-def menu_configuration_view(request):
-    """Menu de configuration du projet"""
-    from suivi.models import Thematique
-    from core.models import Projet
+def menu_configuration_view(request: HttpRequest) -> HttpResponse:
+    """
+    Menu de configuration du projet.
 
+    Affiche les options de configuration avec le nombre de thématiques
+    et indicateurs déjà créés.
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        Page HTML du menu de configuration
+    """
     projet_id = request.session.get('projet_id')
 
     if not projet_id:
@@ -355,12 +421,19 @@ def menu_configuration_view(request):
 
 
 @login_required
-def configurer_indicateurs_view(request):
-    """Gérer les indicateurs par thématique (créer, éditer, supprimer)"""
-    from suivi.models import Thematique, CibleIndicateur
-    from core.models import Projet
-    from datetime import datetime
+def configurer_indicateurs_view(request: HttpRequest) -> HttpResponse:
+    """
+    Gérer les indicateurs par thématique (créer, éditer, supprimer).
 
+    Permet de créer des indicateurs avec leurs cibles pour chaque thématique.
+    En mode wizard, redirige vers paramètres après création.
+
+    Args:
+        request: Requête HTTP (GET pour affichage, POST pour actions)
+
+    Returns:
+        Page HTML de gestion ou redirection après action
+    """
     projet_id = request.session.get('projet_id')
 
     if not projet_id:
@@ -471,10 +544,16 @@ def configurer_indicateurs_view(request):
 
 
 @login_required
-def configurer_parametres_view(request):
-    """Étape 3 : Configuration finale et paramètres"""
-    from core.models import Projet
+def configurer_parametres_view(request: HttpRequest) -> HttpResponse:
+    """
+    Étape 3 du wizard : Configuration finale et paramètres.
 
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML des paramètres ou redirection vers dashboard
+    """
     projet_id = request.session.get('projet_id')
 
     if not projet_id:
@@ -495,10 +574,16 @@ def configurer_parametres_view(request):
 
 
 @login_required
-def liste_interventions_view(request):
-    """Liste des interventions du projet"""
-    from core.models import Projet
+def liste_interventions_view(request: HttpRequest) -> HttpResponse:
+    """
+    Liste des interventions du projet.
 
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        Page HTML listant les interventions
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         messages.error(request, "Aucun projet sélectionné.")
@@ -518,13 +603,19 @@ def liste_interventions_view(request):
 
 
 @login_required
-def creer_intervention_view(request):
-    """Créer une nouvelle intervention"""
-    from core.models import Projet
-    from suivi.models import Thematique
-    from referentiels.models import Commune, TypeIntervention
-    from datetime import date
+def creer_intervention_view(request: HttpRequest) -> HttpResponse:
+    """
+    Créer une nouvelle intervention.
 
+    GET: Affiche le formulaire de création
+    POST: Crée l'intervention et redirige vers la liste
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Page HTML du formulaire ou redirection après création
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         messages.error(request, "Aucun projet sélectionné.")
@@ -577,11 +668,17 @@ def creer_intervention_view(request):
 
 
 @login_required
-def thematique_detail_view(request, thematique_id):
-    """Vue détaillée d'une thématique avec ses indicateurs et interventions"""
-    from core.models import Projet
-    from suivi.models import Thematique, CibleIndicateur
+def thematique_detail_view(request: HttpRequest, thematique_id: int) -> HttpResponse:
+    """
+    Vue détaillée d'une thématique avec ses indicateurs et interventions.
 
+    Args:
+        request: Requête HTTP
+        thematique_id: ID de la thématique à afficher
+
+    Returns:
+        Page HTML avec détails de la thématique
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         messages.error(request, "Aucun projet sélectionné.")
@@ -634,12 +731,17 @@ def thematique_detail_view(request, thematique_id):
 
 
 @login_required
-def changer_statut_intervention_view(request, intervention_id):
-    """Changer le statut d'une intervention via AJAX"""
-    import json
-    from django.http import JsonResponse
-    from core.models import Projet
+def changer_statut_intervention_view(request: HttpRequest, intervention_id: int) -> JsonResponse:
+    """
+    Changer le statut d'une intervention via AJAX.
 
+    Args:
+        request: Requête HTTP POST avec JSON {statut: 'TERMINE'|'PROGRAMME'|'ANNULEE'}
+        intervention_id: ID de l'intervention à modifier
+
+    Returns:
+        JsonResponse avec success/error
+    """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Méthode non autorisée'}, status=405)
 
@@ -668,8 +770,16 @@ def changer_statut_intervention_view(request, intervention_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-def logout_view(request):
-    """Vue de déconnexion personnalisée"""
+def logout_view(request: HttpRequest) -> HttpResponse:
+    """
+    Vue de déconnexion personnalisée.
+
+    Args:
+        request: Requête HTTP
+
+    Returns:
+        Redirection vers la landing page
+    """
     logout(request)
     return redirect('landing_page')
 
@@ -679,10 +789,18 @@ def logout_view(request):
 # ========================================
 
 @login_required
-def carte_sig_view(request):
-    """Interface SIG 3D avec MapLibre GL JS"""
-    from core.models import Projet
+def carte_sig_view(request: HttpRequest) -> HttpResponse:
+    """
+    Interface SIG 3D avec MapLibre GL JS.
 
+    Affiche la carte interactive avec les couches géospatiales du projet.
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        Page HTML de la cartographie SIG
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         messages.error(request, "Aucun projet sélectionné.")
@@ -691,7 +809,6 @@ def carte_sig_view(request):
     projet = Projet.objects.get(id=projet_id)
 
     # Calculer le centre de la zone d'intervention
-    from referentiels.models import CommuneGeom
     communes_geom = CommuneGeom.objects.filter(
         commune__commune_projets__projet=projet
     )
@@ -702,9 +819,6 @@ def carte_sig_view(request):
 
     if communes_geom.exists():
         # Calculer le centroïde de toutes les communes du projet
-        from django.contrib.gis.db.models.functions import Union
-        from django.db.models import Avg
-
         centroid = communes_geom.aggregate(
             avg_lng=Avg('centroide__x'),
             avg_lat=Avg('centroide__y')
@@ -728,14 +842,19 @@ def carte_sig_view(request):
 # ========================================
 
 @login_required
-def api_communes_geojson(request):
-    """API GeoJSON pour les communes du projet"""
-    from django.http import JsonResponse
-    from django.core.serializers import serialize
-    from referentiels.models import CommuneGeom, Commune
-    from django.contrib.gis.geos import GEOSGeometry
-    import json
+def api_communes_geojson(request: HttpRequest) -> JsonResponse:
+    """
+    API GeoJSON pour les communes du projet.
 
+    Retourne les géométries des communes avec leurs statistiques
+    (interventions, bénéficiaires, avancement).
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        GeoJSON FeatureCollection des communes
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         return JsonResponse({'error': 'Aucun projet sélectionné'}, status=403)
@@ -748,8 +867,6 @@ def api_communes_geojson(request):
     features = []
     for commune_geom in communes_geom:
         # Statistiques de la commune
-        from suivi.models import Intervention, CibleIndicateur
-
         interventions_count = Intervention.objects.filter(
             projet_id=projet_id,
             commune=commune_geom.commune,
@@ -794,12 +911,18 @@ def api_communes_geojson(request):
 
 
 @login_required
-def api_interventions_geojson(request):
-    """API GeoJSON pour les interventions du projet"""
-    from django.http import JsonResponse
-    from suivi.models import Intervention
-    import json
+def api_interventions_geojson(request: HttpRequest) -> JsonResponse:
+    """
+    API GeoJSON pour les interventions du projet.
 
+    Retourne les points des interventions géolocalisées avec filtres optionnels.
+
+    Args:
+        request: Requête HTTP avec filtres GET (statut, commune_id)
+
+    Returns:
+        GeoJSON FeatureCollection des interventions
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         return JsonResponse({'error': 'Aucun projet sélectionné'}, status=403)
@@ -851,12 +974,18 @@ def api_interventions_geojson(request):
 
 
 @login_required
-def api_infrastructures_geojson(request):
-    """API GeoJSON pour les infrastructures du projet"""
-    from django.http import JsonResponse
-    from geo.models import Infrastructure
-    import json
+def api_infrastructures_geojson(request: HttpRequest) -> JsonResponse:
+    """
+    API GeoJSON pour les infrastructures du projet.
 
+    Retourne les points des infrastructures (forages, écoles, etc.).
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        GeoJSON FeatureCollection des infrastructures
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         return JsonResponse({'error': 'Aucun projet sélectionné'}, status=403)
@@ -894,12 +1023,18 @@ def api_infrastructures_geojson(request):
 
 
 @login_required
-def api_acteurs_geojson(request):
-    """API GeoJSON pour les acteurs du projet"""
-    from django.http import JsonResponse
-    from geo.models import Acteur
-    import json
+def api_acteurs_geojson(request: HttpRequest) -> JsonResponse:
+    """
+    API GeoJSON pour les acteurs du projet.
 
+    Retourne les points des acteurs/organisations (groupements, coopératives, etc.).
+
+    Args:
+        request: Requête HTTP avec projet_id en session
+
+    Returns:
+        GeoJSON FeatureCollection des acteurs
+    """
     projet_id = request.session.get('projet_id')
     if not projet_id:
         return JsonResponse({'error': 'Aucun projet sélectionné'}, status=403)
