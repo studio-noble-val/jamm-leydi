@@ -1,5 +1,14 @@
+# Core Django
 Django==5.2.7
 Pillow==12.0.0
 requests==2.32.5
 psycopg2-binary==2.9.10  # Driver PostgreSQL/PostGIS
 python-decouple==3.8  # Gestion des variables d'environnement
+
+# Development tools
+black>=24.0.0  # Code formatter
+isort>=5.13.0  # Import sorter
+flake8>=7.0.0  # Linter
+pytest>=8.0.0  # Testing framework
+pytest-django>=4.8.0  # Django integration for pytest
+coverage>=7.4.0  # Code coverage

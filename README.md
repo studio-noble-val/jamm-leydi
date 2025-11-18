@@ -161,7 +161,7 @@ python manage.py migrate
 
 ```bash
 # Données de base (communes, types, etc.)
-python init_data.py
+python scripts/init/init_data.py
 
 # Données de démonstration (optionnel)
 python scripts/demo/demo_data_v3.py

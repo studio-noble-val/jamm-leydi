@@ -15,6 +15,8 @@ SET PROJ_NETWORK=OFF
 
 REM Activer le virtualenv et demarrer le serveur
 call venv\Scripts\activate.bat
-python manage.py runserver
+
+REM Utiliser explicitement le Python du venv pour eviter les conflits
+venv\Scripts\python.exe manage.py runserver
 
 pause
