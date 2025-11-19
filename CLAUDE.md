@@ -350,4 +350,36 @@ echo "oui" | venv/Scripts/python.exe demo_data_v2.py
 
 ---
 
-*Dernière mise à jour : 2025-11-12 - Dashboard avec jauges et données démo V3*
+*Dernière mise à jour : 2025-11-18*
+
+---
+
+## 🔄 Protocole de Clôture de Session
+
+Quand l'utilisateur dit **"clôture proprement cette session"**, effectuer :
+
+1. **TODO.md** : Mettre à jour
+   - Cocher `[x]` les tâches terminées
+   - Ajouter les nouvelles tâches identifiées
+   - Réorganiser les priorités si nécessaire
+
+2. **DEVLOG.md** : Ajouter une entrée
+   - Date et titre de session
+   - Objectifs / Réalisations / Fichiers modifiés / Prochaines étapes
+
+3. **CLAUDE.md** : Mettre à jour si nécessaire
+   - Nouvelles URLs, commandes, ou informations techniques
+   - Date de dernière mise à jour
+
+### Format de rapport client
+
+Le DEVLOG permet de générer un rapport pour le client avec :
+- Avancement par session
+- Fonctionnalités livrées
+- Prochaines étapes claires
+
+### Bonnes pratiques
+
+- **Objectifs réalistes** : Découper en tâches de 1-2h max
+- **Itérations courtes** : Livrer régulièrement des fonctionnalités testables
+- **Documentation** : Tout changement significatif doit être tracé

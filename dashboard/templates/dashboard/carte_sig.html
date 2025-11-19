@@ -6,8 +6,8 @@
     <title>Centre de Commandement SIG - {{ projet.libelle }}</title>
 
     <!-- MapLibre GL JS -->
-    <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css" rel="stylesheet" />
 
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -366,6 +366,45 @@
         .color-interventions { background: rgba(46, 204, 113, 0.5); }
         .color-infrastructures { background: rgba(241, 196, 15, 0.5); }
         .color-acteurs { background: rgba(155, 89, 182, 0.5); }
+
+        /* Basemap selector */
+        .basemap-selector {
+            top: 90px;
+            right: 252px;
+            padding: 12px;
+            min-width: 140px;
+        }
+
+        .basemap-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .basemap-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .basemap-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .basemap-option.active {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .basemap-option i {
+            margin-right: 8px;
+            font-size: 0.9rem;
+            width: 16px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -457,6 +496,51 @@
                     <div class="toggle-knob"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Basemap Selector -->
+    <div class="glass-panel glass-dark basemap-selector">
+        <div class="panel-header" style="margin-bottom: 8px; padding-bottom: 6px;">
+            <i class="fas fa-globe"></i>
+            <h3>Fond de carte</h3>
+        </div>
+        <div class="basemap-option active" data-basemap="osm">
+            <i class="fas fa-map"></i>
+            <span>OpenStreetMap</span>
+        </div>
+        <div class="basemap-option" data-basemap="satellite">
+            <i class="fas fa-satellite"></i>
+            <span>Satellite ESRI</span>
+        </div>
+        <div class="basemap-option" data-basemap="google-satellite">
+            <i class="fas fa-satellite-dish"></i>
+            <span>Google Satellite</span>
+        </div>
+        <div class="basemap-option" data-basemap="google-hybrid">
+            <i class="fas fa-layer-group"></i>
+            <span>Google Hybrid</span>
+        </div>
+        <div class="basemap-option" data-basemap="topo">
+            <i class="fas fa-mountain"></i>
+            <span>Topographique</span>
+        </div>
+        <div class="basemap-option" data-basemap="dark">
+            <i class="fas fa-moon"></i>
+            <span>Sombre</span>
+        </div>
+        <div class="basemap-option" data-basemap="light">
+            <i class="fas fa-sun"></i>
+            <span>Clair</span>
+        </div>
+
+        <div class="panel-header" style="margin: 12px 0 8px 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <i class="fas fa-cube"></i>
+            <h3>Relief 3D</h3>
+        </div>
+        <div class="basemap-option" id="terrain-toggle">
+            <i class="fas fa-mountain"></i>
+            <span>Activer le relief</span>
         </div>
     </div>
 
@@ -557,6 +641,11 @@
 
         // Charger les données au chargement de la carte
         map.on('load', () => {
+            // Activer la projection globe
+            map.setProjection({
+                type: 'globe'
+            });
+
             loadCommunesLayer();
             loadInterventionsLayer();
             loadInfrastructuresLayer();
@@ -868,6 +957,143 @@
                     map.setFilter('interventions-points', ['==', ['get', 'statut'], filter]);
                 }
             });
+        });
+
+        // Basemap switcher
+        const basemaps = {
+            osm: [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            satellite: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            'google-satellite': [
+                'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+            ],
+            'google-hybrid': [
+                'https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                'https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                'https://mt3.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+            ],
+            topo: [
+                'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
+                'https://b.tile.opentopomap.org/{z}/{x}/{y}.png',
+                'https://c.tile.opentopomap.org/{z}/{x}/{y}.png'
+            ],
+            dark: [
+                'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+            ],
+            light: [
+                'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+            ]
+        };
+
+        document.querySelectorAll('.basemap-option[data-basemap]').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.basemap-option[data-basemap]').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+
+                const basemapType = option.dataset.basemap;
+                const source = map.getSource('osm');
+
+                if (source && basemaps[basemapType]) {
+                    source.setTiles(basemaps[basemapType]);
+                }
+            });
+        });
+
+        // Terrain 3D toggle
+        let terrainEnabled = false;
+        const terrainToggle = document.getElementById('terrain-toggle');
+
+        terrainToggle.addEventListener('click', () => {
+            terrainEnabled = !terrainEnabled;
+            terrainToggle.classList.toggle('active', terrainEnabled);
+            terrainToggle.querySelector('span').textContent = terrainEnabled ? 'Désactiver le relief' : 'Activer le relief';
+
+            if (terrainEnabled) {
+                // Add terrain source (Mapzen/Nextzen terrain tiles)
+                if (!map.getSource('terrain')) {
+                    map.addSource('terrain', {
+                        type: 'raster-dem',
+                        tiles: [
+                            'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
+                        ],
+                        tileSize: 256,
+                        maxzoom: 15,
+                        encoding: 'terrarium'
+                    });
+                }
+
+                // Enable terrain
+                map.setTerrain({
+                    source: 'terrain',
+                    exaggeration: 1.5
+                });
+
+                // Add sky for better atmosphere
+                if (!map.getLayer('sky')) {
+                    map.addLayer({
+                        id: 'sky',
+                        type: 'sky',
+                        paint: {
+                            'sky-type': 'atmosphere',
+                            'sky-atmosphere-sun': [0.0, 90.0],
+                            'sky-atmosphere-sun-intensity': 15
+                        }
+                    });
+                }
+
+                // Add hillshade for shadows
+                if (!map.getSource('hillshade-source')) {
+                    map.addSource('hillshade-source', {
+                        type: 'raster-dem',
+                        tiles: [
+                            'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
+                        ],
+                        tileSize: 256,
+                        maxzoom: 15,
+                        encoding: 'terrarium'
+                    });
+                }
+
+                if (!map.getLayer('hillshade')) {
+                    map.addLayer({
+                        id: 'hillshade',
+                        type: 'hillshade',
+                        source: 'hillshade-source',
+                        paint: {
+                            'hillshade-shadow-color': '#000000',
+                            'hillshade-highlight-color': '#ffffff',
+                            'hillshade-accent-color': '#000000',
+                            'hillshade-exaggeration': 0.5
+                        }
+                    }, 'communes-fill'); // Insert before communes layer
+                }
+            } else {
+                // Disable terrain
+                map.setTerrain(null);
+
+                // Remove sky layer
+                if (map.getLayer('sky')) {
+                    map.removeLayer('sky');
+                }
+
+                // Remove hillshade
+                if (map.getLayer('hillshade')) {
+                    map.removeLayer('hillshade');
+                }
+            }
         });
     </script>
 </body>

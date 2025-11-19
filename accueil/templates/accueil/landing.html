@@ -1,175 +1,457 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIG GRDR - Système d'Information Géographique</title>
+    <title>GeoGRDR - Système d'Information Géographique</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
+        :root {
+            --grdr-orange: #E86D2C;
+            --grdr-orange-light: #FF8C4A;
+            --grdr-teal: #2A8B8B;
+            --grdr-ocre: #C6893C;
         }
-        .landing-container {
-            max-width: 1100px;
-            width: 100%;
-            margin: 0 auto;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .landing-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+
+        html, body {
+            height: 100%;
             overflow: hidden;
         }
-        .landing-left {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 2.5rem;
-            min-height: 600px;
+
+        body {
+            background: #ffffff;
+            font-family: 'Quicksand', sans-serif;
         }
-        .landing-right {
-            padding: 3rem 2.5rem;
-            min-height: 600px;
+
+        .landing-wrapper {
+            height: 100vh;
+            display: flex;
         }
-        .logo-grdr {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
+
+        /* Partie gauche - Branding */
+        .branding-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 3rem 4rem;
         }
-        .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 0.75rem;
+
+        /* Header avec logo + titre alignés */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-main {
+            height: 220px;
+            width: auto;
+            margin-right: 3rem;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Titre principal - style calligraphique comme le logo */
+        .app-tagline {
+            font-family: 'Caveat', cursive;
+            font-size: 3.5rem;
+            color: var(--grdr-teal);
             font-weight: 600;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
         }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+
+        /* Sous-titre discret */
+        .app-name {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #999;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .feature-icon {
-            width: 50px;
-            min-width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
+
+        /* Features grid - pleine largeur */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--grdr-orange);
+            transition: transform 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateX(4px);
+        }
+
+        .feature-card i {
+            font-size: 1.8rem;
+            color: var(--grdr-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h6 {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 0.4rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Partie droite - Login */
+        .login-section {
+            width: 380px;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
+            padding: 2rem;
+            position: relative;
         }
-        .feature-content {
-            flex: 1;
+
+        .login-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--grdr-orange) 0%, var(--grdr-ocre) 100%);
         }
-        @media (max-width: 991px) {
-            .landing-left, .landing-right {
-                min-height: auto;
-                padding: 2rem 1.5rem;
+
+        .login-card {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .login-header p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 0.7rem 0.9rem;
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: 'Quicksand', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--grdr-orange);
+            background: rgba(255,255,255,0.12);
+            box-shadow: 0 0 0 2px rgba(232, 109, 44, 0.2);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-orange-light) 100%);
+            border: none;
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: 'Quicksand', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 109, 44, 0.4);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .login-footer small {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.65rem;
+        }
+
+        .alert {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            color: #ff6b6b;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .branding-section {
+                padding: 2rem 3rem;
+            }
+            .logo-main {
+                height: 160px;
+            }
+            .app-tagline {
+                font-size: 2.8rem;
+            }
+            .app-name {
+                font-size: 1rem;
+            }
+            .features-grid {
+                gap: 1rem;
+            }
+            .feature-card {
+                padding: 1rem;
+            }
+            .feature-card i {
+                font-size: 1.4rem;
+            }
+            .feature-card h6 {
+                font-size: 0.95rem;
+            }
+            .feature-card p {
+                font-size: 0.8rem;
+            }
+            .login-section {
+                width: 340px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .landing-wrapper {
+                flex-direction: column;
+            }
+            .branding-section {
+                flex: none;
+                padding: 1.5rem;
+                align-items: center;
+                text-align: center;
+            }
+            .brand-header {
+                flex-direction: column;
+                margin-bottom: 1.5rem;
+            }
+            .logo-main {
+                margin-right: 0;
+                margin-bottom: 0.75rem;
+                height: 50px;
+            }
+            .features-grid {
+                max-width: 100%;
+            }
+            .login-section {
+                width: 100%;
+                height: auto;
+                flex: 1;
+                min-height: 50vh;
+            }
+            .login-section::before {
+                width: 100%;
+                height: 3px;
+                top: 0;
+            }
+            .version-badge {
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-height: 800px) {
+            .branding-section {
+                padding: 1.5rem 2rem;
+            }
+            .brand-header {
+                margin-bottom: 1.5rem;
+            }
+            .logo-main {
+                height: 100px;
+            }
+            .app-tagline {
+                font-size: 2rem;
+            }
+            .app-name {
+                font-size: 0.8rem;
+            }
+            .features-grid {
+                gap: 1rem;
+            }
+            .feature-card {
+                padding: 1rem;
+            }
+            .feature-card i {
+                font-size: 1.4rem;
+                margin-bottom: 0.5rem;
+            }
+            .feature-card h6 {
+                font-size: 0.95rem;
+            }
+            .feature-card p {
+                font-size: 0.8rem;
+            }
+            .version-badge {
+                margin-top: 1rem;
+            }
+            .login-header {
+                margin-bottom: 1.2rem;
+            }
+            .form-group {
+                margin-bottom: 0.8rem;
+            }
+            .form-control {
+                padding: 0.65rem 0.8rem;
+            }
+            .btn-login {
+                padding: 0.75rem;
+            }
+            .login-footer {
+                margin-top: 1rem;
+                padding-top: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="landing-container">
-        <div class="landing-card">
-            <div class="row g-0">
-                <!-- Partie gauche - Présentation -->
-                <div class="col-lg-6 landing-left">
-                    <div class="logo-grdr">
-                        <i class="fas fa-globe-africa"></i> SIG GRDR
-                    </div>
-                    <h4 class="mb-4">Système d'Information Géographique</h4>
-                    <p class="mb-4">
-                        Plateforme de suivi, pilotage et capitalisation des projets de développement du GRDR.
-                    </p>
-
-                    <div class="mt-5">
-                        <div class="d-flex align-items-start mb-3">
-                            <div class="feature-icon me-3">
-                                <i class="fas fa-map-marked-alt"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h6>Cartographie</h6>
-                                <small>Visualisez vos interventions sur une carte interactive</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-start mb-3">
-                            <div class="feature-icon me-3">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h6>Suivi d'indicateurs</h6>
-                                <small>Pilotez vos projets avec des tableaux de bord dynamiques</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-start">
-                            <div class="feature-icon me-3">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h6>Multi-projets</h6>
-                                <small>Gérez plusieurs projets sur une seule plateforme</small>
-                            </div>
-                        </div>
-                    </div>
+    <div class="landing-wrapper">
+        <!-- Partie gauche - Branding -->
+        <div class="branding-section">
+            <div class="brand-header">
+                <img src="{% static 'logo-grdr-2025.jpg' %}" alt="GRDR" class="logo-main">
+                <div class="brand-text">
+                    <h1 class="app-tagline">Système d'Information Géographique</h1>
+                    <p class="app-name">GeoGrdr</p>
                 </div>
+            </div>
 
-                <!-- Partie droite - Formulaire de connexion -->
-                <div class="col-lg-6 landing-right">
-                    <h2 class="mb-4">Connexion</h2>
-
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <form method="post" action="{% url 'landing_page' %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="username" class="form-label">
-                                <i class="fas fa-user me-2"></i>Nom d'utilisateur
-                            </label>
-                            <input type="text" class="form-control form-control-lg" id="username"
-                                   name="username" required autofocus>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="password" class="form-label">
-                                <i class="fas fa-lock me-2"></i>Mot de passe
-                            </label>
-                            <input type="password" class="form-control form-control-lg" id="password"
-                                   name="password" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-login btn-lg w-100">
-                            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
-                        </button>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <div class="text-center text-muted">
-                        <small>
-                            <i class="fas fa-info-circle me-1"></i>
-                            Accès réservé aux équipes GRDR et partenaires
-                        </small>
-                    </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-globe-africa"></i>
+                    <h6>Globe 3D</h6>
+                    <p>Visualisez vos projets sur un globe interactif</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h6>Indicateurs</h6>
+                    <p>Tableaux de bord dynamiques temps réel</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-layer-group"></i>
+                    <h6>Multi-projets</h6>
+                    <p>Gérez plusieurs territoires</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-satellite"></i>
+                    <h6>Imagerie</h6>
+                    <p>Fonds satellite et Sentinel</p>
                 </div>
             </div>
         </div>
 
-        <div class="text-center mt-4 text-white">
-            <small>
-                <i class="fas fa-copyright me-1"></i>2025 GRDR Migration Citoyenneté Développement
-            </small>
+        <!-- Partie droite - Login -->
+        <div class="login-section">
+            <div class="login-card">
+                <div class="login-header">
+                    <h2>Connexion</h2>
+                    <p>Accédez à votre espace projet</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'landing_page' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">Identifiant</label>
+                        <input type="text" class="form-control" name="username"
+                               required autofocus placeholder="Votre identifiant">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control" name="password"
+                               required placeholder="Votre mot de passe">
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <small>
+                        <i class="fas fa-lock me-1"></i>
+                        Accès réservé aux équipes GRDR
+                    </small>
+                </div>
+            </div>
         </div>
     </div>
 
