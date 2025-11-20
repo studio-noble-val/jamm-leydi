@@ -1,0 +1,265 @@
+/* GeoGRDR - Page de connexion - Landing Page */
+
+:root {
+    --grdr-orange: #E86D2C;
+    --grdr-orange-light: #FF8C4A;
+    --grdr-teal: #2A8B8B;
+    --grdr-ocre: #C6893C;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: #ffffff;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.landing-wrapper {
+    height: 100vh;
+    display: flex;
+}
+
+/* Partie gauche - Branding */
+.branding-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 4rem 4rem;
+}
+
+/* Header avec logo + titre alignés */
+.brand-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.logo-main {
+    height: 200px;
+    width: auto;
+    margin-right: 4rem;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Titre principal - style calligraphique comme le logo */
+.app-tagline {
+    font-family: 'Caveat', cursive;
+    font-size: 3rem;
+    color: var(--grdr-teal);
+    font-weight: 600;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+
+/* Sous-titre discret */
+.app-name {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #999;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+/* Features grid - pleine largeur */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+}
+
+.feature-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 5px solid var(--grdr-orange);
+    transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateX(4px);
+}
+
+.feature-card i {
+    font-size: 2.5rem;
+    color: var(--grdr-orange);
+    margin-bottom: 1rem;
+}
+
+.feature-card h6 {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Partie droite - Login */
+.login-section {
+    width: 480px;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+}
+
+.login-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--grdr-orange) 0%, var(--grdr-ocre) 100%);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 360px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    color: #fff;
+    font-size: 1.05rem;
+    font-family: 'Quicksand', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.form-control::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--grdr-orange);
+    background: rgba(255,255,255,0.12);
+    box-shadow: 0 0 0 2px rgba(232, 109, 44, 0.2);
+}
+
+.btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-orange-light) 100%);
+    border: none;
+    border-radius: 6px;
+    padding: 1.1rem;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    font-family: 'Quicksand', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232, 109, 44, 0.4);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.login-footer small {
+    color: rgba(255,255,255,0.35);
+    font-size: 0.85rem;
+}
+
+.alert {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    color: #ff6b6b;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive minimal - uniquement pour mobile/tablette */
+@media (max-width: 768px) {
+    .landing-wrapper {
+        flex-direction: column;
+    }
+    .branding-section {
+        padding: 2rem;
+    }
+    .brand-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .logo-main {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        height: 140px;
+    }
+    .login-section {
+        width: 100%;
+        height: auto;
+        min-height: 50vh;
+    }
+}

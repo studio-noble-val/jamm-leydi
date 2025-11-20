@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Dashboard - {{ request.session.projet_libelle|default:"SIG GRDR" }}{% endblock %}
+{% block title %}Dashboard - {{ request.session.projet_libelle|default:"GeoGRDR" }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -109,7 +109,7 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-header bg-white border-0">
                 <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-chart-pie me-2 text-primary"></i>
+                    <i class="fas fa-chart-pie me-2"></i>
                     Avancement par Thématique
                 </h5>
             </div>
@@ -139,7 +139,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white border-0">
                 <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                    <i class="fas fa-map-marker-alt me-2"></i>
                     Avancement par Commune
                 </h5>
             </div>
@@ -268,93 +268,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.card {
-    border: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-}
-
-.card-clickable {
-    cursor: pointer;
-}
-
-.card-clickable:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
-}
-
-.progress {
-    background-color: #e9ecef;
-    border-radius: 10px;
-}
-
-.progress-bar {
-    border-radius: 10px;
-}
-
-/* KPI Cards */
-.kpi-card {
-    border-left: 4px solid #667eea;
-    transition: all 0.3s ease;
-}
-
-.kpi-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
-}
-
-.kpi-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-.bg-primary-light {
-    background-color: rgba(102, 126, 234, 0.1);
-}
-
-.bg-success-light {
-    background-color: rgba(40, 167, 69, 0.1);
-}
-
-.bg-warning-light {
-    background-color: rgba(255, 193, 7, 0.1);
-}
-
-/* Section Thématiques */
-.row > .col-12 > h5 {
-    font-weight: 600;
-    color: #2c3e50;
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 10px;
-}
-
-/* Gauges thématiques */
-.thematique-gauge {
-    position: relative;
-    padding: 10px;
-    transition: transform 0.3s ease;
-}
-
-.thematique-gauge:hover {
-    transform: scale(1.05);
-}
-
-.thematique-gauge canvas {
-    max-width: 100%;
-    height: auto !important;
-}
-</style>
 
 <script>
 // Créer les graphiques en demi-cercle pour chaque thématique

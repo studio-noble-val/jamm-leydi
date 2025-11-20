@@ -1,0 +1,223 @@
+/* GeoGRDR - Page de sélection des projets */
+
+:root {
+    --grdr-orange: #E86D2C;
+    --grdr-orange-light: #FF8C4A;
+    --grdr-teal: #2A8B8B;
+    --grdr-ocre: #C6893C;
+}
+
+body {
+    background: #f8f9fa;
+    font-family: 'Quicksand', sans-serif;
+    padding-top: 70px;
+}
+
+/* Navbar GRDR */
+.navbar-grdr {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.navbar-grdr.scrolled {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.navbar-brand .logo-img {
+    height: 50px;
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.logo-grdr {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--grdr-teal);
+    display: flex;
+    align-items: center;
+}
+
+.logo-grdr:hover {
+    color: var(--grdr-teal);
+}
+
+/* Avatar utilisateur */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-ocre) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+}
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-top: 0.5rem;
+}
+
+/* En-tête de page */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-family: 'Quicksand', sans-serif;
+    color: var(--grdr-teal);
+    font-weight: 700;
+}
+
+.page-header .text-muted {
+    color: #666 !important;
+}
+
+/* Bouton nouveau projet */
+.btn-primary {
+    background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-orange-light) 100%);
+    border: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--grdr-orange-light) 0%, var(--grdr-orange) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232, 109, 44, 0.4);
+}
+
+/* Cards projets */
+.projet-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.projet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.projet-header {
+    background: linear-gradient(135deg, var(--grdr-teal) 0%, #1d6a6a 100%);
+    color: white;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.projet-header:hover {
+    background: linear-gradient(135deg, #1d6a6a 0%, var(--grdr-teal) 100%);
+}
+
+.projet-header h5 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.projet-card .card-body {
+    cursor: pointer;
+    padding: 1.5rem;
+}
+
+/* Badges */
+.badge.bg-success {
+    background-color: var(--grdr-teal) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--grdr-orange) !important;
+}
+
+/* Card footer */
+.projet-card .card-footer {
+    background: #f8f9fa;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.projet-card .card-footer .btn-primary {
+    background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-orange-light) 100%);
+}
+
+.projet-card .card-footer .btn-outline-danger:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Alert vide */
+.alert-info {
+    background: rgba(42, 139, 139, 0.1);
+    border: 1px solid var(--grdr-teal);
+    color: var(--grdr-teal);
+}
+
+.alert-info i.fa-info-circle {
+    color: var(--grdr-teal);
+}
+
+/* Modal */
+.modal-header.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%) !important;
+}
+
+/* Icônes */
+.fas.fa-project-diagram {
+    color: var(--grdr-teal);
+}
+
+/* Formulaire de création de projet */
+.card-header.bg-primary {
+    background: linear-gradient(135deg, var(--grdr-teal) 0%, #1d6a6a 100%) !important;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control:focus {
+    border-color: var(--grdr-orange);
+    box-shadow: 0 0 0 0.2rem rgba(232, 109, 44, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--grdr-teal) 0%, #1d6a6a 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #1d6a6a 0%, var(--grdr-teal) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(42, 139, 139, 0.4);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
