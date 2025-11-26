@@ -1,11 +1,172 @@
 """
-Modèles géolocalisés : Infrastructures et Acteurs
+Modèles géolocalisés : Infrastructures, Acteurs, Admin2 (pays) et Cellules GRDR
 """
 from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils import timezone
 from core.models import Projet
 from referentiels.models import Commune, TypeInfrastructure, TypeActeur
+
+
+class Admin2(gis_models.Model):
+    """
+    Niveau administratif 2 (pays)
+    Table miroir de geo.admin-2 pour l'intégration dans Django ORM
+    """
+    geom = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    osm_id = models.CharField(max_length=254, blank=True, null=True)
+    osm_way_id = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True,
+                           help_text="Nom du pays")
+    type = models.CharField(max_length=254, blank=True, null=True)
+    aeroway = models.CharField(max_length=254, blank=True, null=True)
+    amenity = models.CharField(max_length=254, blank=True, null=True)
+    admin_leve = models.CharField(max_length=254, blank=True, null=True,
+                                 db_column='admin_leve',
+                                 help_text="Niveau administratif")
+    barrier = models.CharField(max_length=254, blank=True, null=True)
+    boundary = models.CharField(max_length=254, blank=True, null=True)
+    building = models.CharField(max_length=254, blank=True, null=True)
+    craft = models.CharField(max_length=254, blank=True, null=True)
+    geological = models.CharField(max_length=254, blank=True, null=True)
+    historic = models.CharField(max_length=254, blank=True, null=True)
+    land_area = models.CharField(max_length=254, blank=True, null=True)
+    landuse = models.CharField(max_length=254, blank=True, null=True)
+    leisure = models.CharField(max_length=254, blank=True, null=True)
+    man_made = models.CharField(max_length=254, blank=True, null=True)
+    military = models.CharField(max_length=254, blank=True, null=True)
+    natural = models.CharField(max_length=254, blank=True, null=True)
+    office = models.CharField(max_length=254, blank=True, null=True)
+    place = models.CharField(max_length=254, blank=True, null=True)
+    shop = models.CharField(max_length=254, blank=True, null=True)
+    sport = models.CharField(max_length=254, blank=True, null=True)
+    tourism = models.CharField(max_length=254, blank=True, null=True)
+    other_tags = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        db_table = '"geo"."admin-2"'
+        managed = False  # Table gérée en dehors de Django
+        verbose_name = "Pays (Admin2)"
+        verbose_name_plural = "Pays (Admin2)"
+
+    def __str__(self):
+        return self.name or f"Admin2 #{self.id}"
+
+
+class CellulesGRDR(gis_models.Model):
+    """
+    Cellules (antennes, bureaux) du GRDR avec géolocalisation
+    Table miroir de geo."cellules-grdr"
+    """
+    nom = models.CharField(max_length=255,
+                          help_text="Nom officiel de la cellule")
+    geom = gis_models.PointField(srid=4326, null=True, blank=True,
+                                 help_text="Coordonnées géographiques de la cellule (SRID 4326)")
+
+    class Meta:
+        db_table = '"geo"."cellules-grdr"'  # Guillemets requis à cause du trait d'union
+        managed = False  # Table gérée en dehors de Django
+        verbose_name = "Cellule GRDR"
+        verbose_name_plural = "Cellules GRDR"
+
+    def __str__(self):
+        return self.nom
+
+
+class Admin4(gis_models.Model):
+    """
+    Niveau administratif 4 - Régions
+    Table miroir de geo.admin-4
+    """
+    geom = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    osm_id = models.CharField(max_length=254, blank=True, null=True)
+    osm_way_id = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True,
+                           help_text="Nom de la région")
+    admin_leve = models.CharField(max_length=254, blank=True, null=True)
+    boundary = models.CharField(max_length=254, blank=True, null=True)
+    place = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        db_table = '"geo"."admin-4"'
+        managed = False
+        verbose_name = "Région (Admin4)"
+        verbose_name_plural = "Régions (Admin4)"
+
+    def __str__(self):
+        return self.name or f"Admin4 #{self.id}"
+
+
+class Admin5(gis_models.Model):
+    """
+    Niveau administratif 5 - Départements
+    Table miroir de geo.admin-5
+    """
+    geom = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    osm_id = models.CharField(max_length=254, blank=True, null=True)
+    osm_way_id = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True,
+                           help_text="Nom du département")
+    admin_leve = models.CharField(max_length=254, blank=True, null=True)
+    boundary = models.CharField(max_length=254, blank=True, null=True)
+    place = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        db_table = '"geo"."admin-5"'
+        managed = False
+        verbose_name = "Département (Admin5)"
+        verbose_name_plural = "Départements (Admin5)"
+
+    def __str__(self):
+        return self.name or f"Admin5 #{self.id}"
+
+
+class Admin7(gis_models.Model):
+    """
+    Niveau administratif 7 - Arrondissements
+    Table miroir de geo.admin-7
+    """
+    geom = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    osm_id = models.CharField(max_length=254, blank=True, null=True)
+    osm_way_id = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True,
+                           help_text="Nom de l'arrondissement")
+    admin_leve = models.CharField(max_length=254, blank=True, null=True)
+    boundary = models.CharField(max_length=254, blank=True, null=True)
+    place = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        db_table = '"geo"."admin-7"'
+        managed = False
+        verbose_name = "Arrondissement (Admin7)"
+        verbose_name_plural = "Arrondissements (Admin7)"
+
+    def __str__(self):
+        return self.name or f"Admin7 #{self.id}"
+
+
+class Admin8(gis_models.Model):
+    """
+    Niveau administratif 8 - Communes
+    Table miroir de geo.admin-8
+    """
+    geom = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    osm_id = models.CharField(max_length=254, blank=True, null=True)
+    osm_way_id = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True,
+                           help_text="Nom de la commune")
+    admin_leve = models.CharField(max_length=254, blank=True, null=True)
+    boundary = models.CharField(max_length=254, blank=True, null=True)
+    place = models.CharField(max_length=254, blank=True, null=True)
+
+    class Meta:
+        db_table = '"geo"."admin-8"'
+        managed = False
+        verbose_name = "Commune (Admin8)"
+        verbose_name_plural = "Communes (Admin8)"
+
+    def __str__(self):
+        return self.name or f"Admin8 #{self.id}"
 
 
 class Infrastructure(gis_models.Model):

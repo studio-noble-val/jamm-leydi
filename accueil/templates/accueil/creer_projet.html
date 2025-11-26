@@ -24,16 +24,11 @@
                         </h5>
 
                         <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <label for="code_projet" class="form-label">Code du projet <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="code_projet" name="code_projet"
-                                       placeholder="Ex: PROJ-2025" required>
-                                <small class="text-muted">Identifiant unique</small>
-                            </div>
-                            <div class="col-md-8">
+                            <div class="col-12">
                                 <label for="libelle" class="form-label">Titre du projet <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="libelle" name="libelle"
-                                       placeholder="Ex: Projet d'amélioration..." required>
+                                       placeholder="Ex: Projet d'amélioration de la résilience climatique..." required>
+                                <small class="text-muted">Le code du projet sera généré automatiquement (PROJ-1, PROJ-2, etc.)</small>
                             </div>
                         </div>
 
@@ -51,27 +46,87 @@
                             Localisation
                         </h5>
 
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label for="pays" class="form-label">Pays</label>
-                                <input type="text" class="form-control" id="pays" name="pays" value="Sénégal">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="equipe_grdr" class="form-label">Équipe GRDR</label>
-                                <select class="form-select" id="equipe_grdr" name="equipe_grdr">
-                                    <option value="">-- Sélectionner une équipe --</option>
-                                    {% for equipe in equipes_grdr %}
-                                    <option value="{{ equipe.id }}">{{ equipe.nom }} ({{ equipe.get_type_equipe_display }})</option>
-                                    {% endfor %}
-                                </select>
-                                <small class="text-muted">Équipe GRDR de rattachement du projet</small>
-                            </div>
+                        {% if cellules_grdr %}
+                        <div class="mb-4">
+                            <label for="cellule_grdr" class="form-label">Cellule GRDR</label>
+                            <select class="form-select" id="cellule_grdr" name="cellule_grdr">
+                                <option value="">-- Sélectionner une cellule --</option>
+                                {% for cellule in cellules_grdr %}
+                                <option value="{{ cellule.id }}">{{ cellule.nom }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Cellule GRDR de rattachement (antenne, bureau...)</small>
+                        </div>
+                        {% endif %}
+
+                        <hr class="my-4">
+
+                        <!-- Sélection géographique multi-niveaux -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-map me-2"></i>
+                            Zones géographiques d'intervention (sélection détaillée)
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Sélectionnez les zones d'intervention à différents niveaux administratifs.
+                            Les listes se filtrent automatiquement en fonction de vos sélections.
+                        </p>
+
+                        <!-- Niveau 1 : Pays -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-globe me-2"></i>Pays
+                            </label>
+                            <select class="form-select" id="zone_pays_select" multiple size="4">
+                                <option value="">-- Sélectionner un ou plusieurs pays --</option>
+                                {% for pays in pays_list %}
+                                <option value="{{ pays.id }}">{{ pays.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Maintenez Ctrl (Windows) ou Cmd (Mac) pour sélectionner plusieurs pays</small>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="zone_intervention" class="form-label">Zone d'intervention</label>
-                            <input type="text" class="form-control" id="zone_intervention" name="zone_intervention"
-                                   placeholder="Ex: Région de Kédougou">
+                        <!-- Niveau 2 : Régions -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-map-marked me-2"></i>Régions
+                            </label>
+                            <select class="form-select" id="zone_regions_select" name="zone_regions" multiple size="4" disabled>
+                                <option value="">-- Sélectionnez d'abord un ou plusieurs pays --</option>
+                            </select>
+                            <small class="text-muted">Régions filtrées selon les pays sélectionnés</small>
+                        </div>
+
+                        <!-- Niveau 3 : Départements -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-map-marked-alt me-2"></i>Départements
+                            </label>
+                            <select class="form-select" id="zone_departements_select" name="zone_departements" multiple size="4" disabled>
+                                <option value="">-- Sélectionnez d'abord une ou plusieurs régions --</option>
+                            </select>
+                            <small class="text-muted">Départements filtrés selon les régions sélectionnées</small>
+                        </div>
+
+                        <!-- Niveau 4 : Arrondissements -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-map-pin me-2"></i>Arrondissements
+                            </label>
+                            <select class="form-select" id="zone_arrondissements_select" name="zone_arrondissements" multiple size="4" disabled>
+                                <option value="">-- Sélectionnez d'abord un ou plusieurs départements --</option>
+                            </select>
+                            <small class="text-muted">Arrondissements filtrés selon les départements sélectionnés</small>
+                        </div>
+
+                        <!-- Niveau 5 : Communes -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-city me-2"></i>Communes
+                            </label>
+                            <select class="form-select" id="zone_communes_select" name="zone_communes" multiple size="4" disabled>
+                                <option value="">-- Sélectionnez d'abord un ou plusieurs arrondissements --</option>
+                            </select>
+                            <small class="text-muted">Communes filtrées selon les arrondissements sélectionnés</small>
                         </div>
 
                         <hr class="my-4">
@@ -137,3 +192,205 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du DOM
+    const zonePaysSelect = document.getElementById('zone_pays_select');
+    const zoneRegionsSelect = document.getElementById('zone_regions_select');
+    const zoneDepartementsSelect = document.getElementById('zone_departements_select');
+    const zoneArrondissementsSelect = document.getElementById('zone_arrondissements_select');
+    const zoneCommunesSelect = document.getElementById('zone_communes_select');
+
+    /**
+     * Récupère les IDs sélectionnés dans un select multiple
+     */
+    function getSelectedIds(selectElement) {
+        const selectedOptions = Array.from(selectElement.selectedOptions);
+        return selectedOptions
+            .map(opt => opt.value)
+            .filter(val => val !== '');
+    }
+
+    /**
+     * Charge les options dans un select depuis une API
+     */
+    async function loadOptions(apiUrl, selectElement, dataKey, params = {}) {
+        try {
+            // Construire l'URL avec les paramètres
+            const url = new URL(apiUrl, window.location.origin);
+            Object.keys(params).forEach(key => {
+                if (params[key]) {
+                    url.searchParams.append(key, params[key]);
+                }
+            });
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Vider le select et activer
+            selectElement.innerHTML = '';
+            selectElement.disabled = false;
+
+            // Si pas de données, afficher un message
+            if (!data[dataKey] || data[dataKey].length === 0) {
+                selectElement.innerHTML = '<option value="">-- Aucune donnée disponible --</option>';
+                selectElement.disabled = true;
+                return;
+            }
+
+            // Ajouter les options
+            data[dataKey].forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name || 'Sans nom';
+                selectElement.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Erreur lors du chargement des données:', error);
+            selectElement.innerHTML = '<option value="">-- Erreur de chargement --</option>';
+            selectElement.disabled = true;
+        }
+    }
+
+    /**
+     * Réinitialise un select et les niveaux suivants
+     */
+    function resetSelect(selectElement, message, cascadeSelects = []) {
+        selectElement.innerHTML = `<option value="">${message}</option>`;
+        selectElement.disabled = true;
+
+        // Réinitialiser en cascade les niveaux suivants
+        cascadeSelects.forEach(select => {
+            resetSelect(select, '-- Sélectionnez d\'abord le niveau précédent --');
+        });
+    }
+
+    /**
+     * Avant soumission du formulaire, ajouter les valeurs sélectionnées
+     * aux champs input cachés avec le nom correct
+     */
+    function prepareFormSubmit() {
+        const form = document.querySelector('form');
+
+        // Supprimer les anciens inputs cachés s'ils existent
+        form.querySelectorAll('input[name^="zone_"]').forEach(input => input.remove());
+
+        // Créer des inputs cachés pour chaque sélection
+        const selections = {
+            'zone_pays': getSelectedIds(zonePaysSelect),
+            'zone_regions': getSelectedIds(zoneRegionsSelect),
+            'zone_departements': getSelectedIds(zoneDepartementsSelect),
+            'zone_arrondissements': getSelectedIds(zoneArrondissementsSelect),
+            'zone_communes': getSelectedIds(zoneCommunesSelect)
+        };
+
+        Object.keys(selections).forEach(name => {
+            selections[name].forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = id;
+                form.appendChild(input);
+            });
+        });
+    }
+
+    // Event listeners pour la sélection en cascade
+
+    // Niveau 1 : Pays → Régions
+    zonePaysSelect.addEventListener('change', async function() {
+        const selectedPaysIds = getSelectedIds(this);
+
+        if (selectedPaysIds.length === 0) {
+            resetSelect(zoneRegionsSelect, '-- Sélectionnez d\'abord un ou plusieurs pays --',
+                       [zoneDepartementsSelect, zoneArrondissementsSelect, zoneCommunesSelect]);
+            return;
+        }
+
+        // Charger les régions
+        await loadOptions(
+            '{% url "api_get_regions" %}',
+            zoneRegionsSelect,
+            'regions',
+            { pays_ids: selectedPaysIds.join(',') }
+        );
+
+        // Réinitialiser les niveaux suivants
+        resetSelect(zoneDepartementsSelect, '-- Sélectionnez d\'abord une ou plusieurs régions --',
+                   [zoneArrondissementsSelect, zoneCommunesSelect]);
+    });
+
+    // Niveau 2 : Régions → Départements
+    zoneRegionsSelect.addEventListener('change', async function() {
+        const selectedRegionsIds = getSelectedIds(this);
+
+        if (selectedRegionsIds.length === 0) {
+            resetSelect(zoneDepartementsSelect, '-- Sélectionnez d\'abord une ou plusieurs régions --',
+                       [zoneArrondissementsSelect, zoneCommunesSelect]);
+            return;
+        }
+
+        // Charger les départements
+        await loadOptions(
+            '{% url "api_get_departements" %}',
+            zoneDepartementsSelect,
+            'departements',
+            { region_ids: selectedRegionsIds.join(',') }
+        );
+
+        // Réinitialiser les niveaux suivants
+        resetSelect(zoneArrondissementsSelect, '-- Sélectionnez d\'abord un ou plusieurs départements --',
+                   [zoneCommunesSelect]);
+    });
+
+    // Niveau 3 : Départements → Arrondissements
+    zoneDepartementsSelect.addEventListener('change', async function() {
+        const selectedDepartementsIds = getSelectedIds(this);
+
+        if (selectedDepartementsIds.length === 0) {
+            resetSelect(zoneArrondissementsSelect, '-- Sélectionnez d\'abord un ou plusieurs départements --',
+                       [zoneCommunesSelect]);
+            return;
+        }
+
+        // Charger les arrondissements
+        await loadOptions(
+            '{% url "api_get_arrondissements" %}',
+            zoneArrondissementsSelect,
+            'arrondissements',
+            { departement_ids: selectedDepartementsIds.join(',') }
+        );
+
+        // Réinitialiser le niveau suivant
+        resetSelect(zoneCommunesSelect, '-- Sélectionnez d\'abord un ou plusieurs arrondissements --');
+    });
+
+    // Niveau 4 : Arrondissements → Communes
+    zoneArrondissementsSelect.addEventListener('change', async function() {
+        const selectedArrondissementsIds = getSelectedIds(this);
+
+        if (selectedArrondissementsIds.length === 0) {
+            resetSelect(zoneCommunesSelect, '-- Sélectionnez d\'abord un ou plusieurs arrondissements --');
+            return;
+        }
+
+        // Charger les communes
+        await loadOptions(
+            '{% url "api_get_communes" %}',
+            zoneCommunesSelect,
+            'communes',
+            { arrondissement_ids: selectedArrondissementsIds.join(',') }
+        );
+    });
+
+    // Avant soumission du formulaire, préparer les données
+    document.querySelector('form').addEventListener('submit', function(e) {
+        prepareFormSubmit();
+    });
+});
+</script>
+{% endblock %}
+

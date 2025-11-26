@@ -36,7 +36,11 @@ jamm_leydi/          # Configuration principale
 
 ### Architecture Multi-Projets (core)
 1. **User** (AbstractUser personnalisé) : Utilisateurs avec téléphone et organisation
-2. **Projet** : Projets de développement (code, dates, budget, bailleurs, zone_intervention)
+2. **Projet** : Projets de développement
+   - **code_projet** : Auto-généré au format `PROJ-{id}` (non éditable)
+   - **pays** : ForeignKey vers `Admin2` (pays OSM, `db_constraint=False`)
+   - **cellule_grdr** : ForeignKey vers `CellulesGRDR` (antennes GRDR, `db_constraint=False`)
+   - Autres : dates, budget, bailleurs, zone_intervention
 3. **UserProjet** : Relation Many-to-Many avec rôles (ADMIN_PROJET, CONTRIBUTEUR, LECTEUR)
 
 **Isolation** : Chaque utilisateur ne voit que ses projets assignés.
@@ -65,12 +69,26 @@ jamm_leydi/          # Configuration principale
    - Statut : BROUILLON, VALIDE, PUBLIE
 
 ### Entités Géolocalisées (geo)
+
+**🗺️ Tables SIG Externes (managed=False)**
+1. **Admin2** : Pays (niveau administratif 2 OSM)
+   - Table : `geo."admin-2"` (gérée hors Django)
+   - Géométrie : MULTIPOLYGON
+   - Utilisé pour : Pays d'intervention des projets
+2. **CellulesGRDR** : Cellules/Antennes du GRDR
+   - Table : `geo."cellules_grdr"` (gérée hors Django)
+   - Géométrie : POINT
+   - Utilisé pour : Rattachement géographique des projets
+
+**📍 Entités du Projet (managed=True)**
 1. **Infrastructure** : Infrastructures avec geom (POINT)
    - Champs : nb_beneficiaires, statut, cout_construction, caracteristiques (JSON)
 2. **Acteur** : Organisations/Groupements avec geom (POINT)
    - Composition : nb_adherents, nb_femmes, nb_hommes, nb_jeunes
    - Contact : responsable, telephone, email
    - Domaines d'activité en JSON
+
+**⚠️ Règle importante** : Toutes les tables géographiques qui ne sont pas intrinsèques au projet doivent avoir `managed=False` et utiliser `db_constraint=False` pour les ForeignKeys.
 
 ### Monitoring Sécurité (securite)
 1. **TypeInsecurite** : Conflits fonciers, Vol de bétail, Tensions intercommunautaires
@@ -226,11 +244,44 @@ ALLOWED_HOSTS=domaine.com
 - Pagination recommandée pour les listes longues
 - Cache à prévoir pour les graphiques du dashboard
 
-### GeoDjango
+### GeoDjango & Intégration SIG
+
+**Configuration PostGIS**
 - **SRID** : 4326 (WGS84) pour tous les champs géographiques
 - **Types** : POINT pour localisations, MULTIPOLYGON pour contours
 - **Calculs spatiaux** : Centroïde auto-calculé pour CommuneGeom
 - **Cartographie** : Compatible OpenStreetMap et Leaflet.js
+
+**🗺️ Tables SIG Externes (IMPORTANT)**
+Toutes les tables géographiques provenant de sources externes (OSM, données nationales, etc.) doivent :
+1. **Être dans le schéma `geo`** : `CREATE SCHEMA IF NOT EXISTS geo;`
+2. **Utiliser `managed=False`** dans le modèle Django
+3. **Utiliser des guillemets pour db_table** : `db_table = '"geo"."nom_table"'`
+4. **ForeignKeys avec `db_constraint=False`** : Pour éviter les contraintes SQL
+
+**Exemple de modèle pour table SIG externe** :
+```python
+class Admin2(gis_models.Model):
+    """Table miroir OSM (managed=False)"""
+    name = models.CharField(max_length=254)
+    geom = gis_models.MultiPolygonField(srid=4326)
+
+    class Meta:
+        db_table = '"geo"."admin-2"'
+        managed = False  # ← Ne pas gérer via migrations Django
+
+# Utilisation dans un autre modèle
+class Projet(models.Model):
+    pays = models.ForeignKey(
+        'geo.Admin2',
+        on_delete=models.SET_NULL,
+        db_constraint=False  # ← Pas de contrainte FK en base
+    )
+```
+
+**Tables SIG actuelles** :
+- `geo."admin-2"` : Pays (niveau admin 2 OpenStreetMap)
+- `geo."cellules_grdr"` : Cellules/Antennes du GRDR avec coordonnées GPS
 
 ### UX/UI
 - Design responsive mobile-first
@@ -253,6 +304,26 @@ ALLOWED_HOSTS=domaine.com
 - **Modèles** : Utiliser `gis_models` pour les champs géographiques
 
 ## 📐 Choix Architecturaux Clés
+
+### Auto-génération du Code Projet
+**Avant** : Code projet saisi manuellement par l'utilisateur
+**Après** : Code auto-généré au format `PROJ-{id}` via méthode `save()`
+
+**Avantages** :
+- Garantit l'unicité sans validation utilisateur
+- Simplifie le formulaire de création
+- Cohérence dans la nomenclature
+
+### Intégration SIG avec `managed=False`
+**Principe** : Les tables géographiques externes (OSM, référentiels nationaux) sont gérées hors Django
+
+**Avantages** :
+- Django ne tente pas de créer/modifier ces tables
+- Permet l'import de données SIG existantes
+- Évite les conflits avec les outils SIG (QGIS, osm2pgsql, etc.)
+- ForeignKeys avec `db_constraint=False` pour flexibilité
+
+**Tables concernées** : `Admin2` (pays OSM), `CellulesGRDR` (antennes GRDR)
 
 ### Fusion Activité/Réalisation
 **Avant** : 2 tables séparées
@@ -303,6 +374,16 @@ Permet de gérer plusieurs projets GRDR sur la même plateforme avec isolation c
 /admin/                                          # Interface d'administration Django
 ```
 
+### Gestion des Projets (authentification requise)
+```
+# Accueil et sélection
+/                                                # Landing page avec connexion
+/projets/                                        # Liste des projets de l'utilisateur
+/projets/creer/                                  # Créer un nouveau projet (wizard)
+/projets/<id>/selectionner/                      # Sélectionner un projet actif
+/projets/<id>/supprimer/                         # Supprimer un projet (superuser)
+```
+
 ### Public (accès libre)
 ```
 /public/                                         # Page d'accueil publique
@@ -350,7 +431,7 @@ echo "oui" | venv/Scripts/python.exe demo_data_v2.py
 
 ---
 
-*Dernière mise à jour : 2025-11-18*
+*Dernière mise à jour : 2025-11-25 - Intégration SIG et auto-génération code projet*
 
 ---
 

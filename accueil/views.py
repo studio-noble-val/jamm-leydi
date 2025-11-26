@@ -15,7 +15,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.models import Projet, UserProjet
-from referentiels.models import EquipeGRDR
+from geo.models import Admin2, Admin4, Admin5, Admin7, Admin8, CellulesGRDR
 
 
 def landing_page(request: HttpRequest) -> HttpResponse:
@@ -105,24 +105,21 @@ def creer_projet(request: HttpRequest) -> HttpResponse:
         Page HTML du formulaire ou redirection vers wizard
     """
     if request.method == 'POST':
-        # Récupérer l'équipe GRDR si sélectionnée
-        equipe_grdr_id = request.POST.get('equipe_grdr')
-        equipe_grdr = None
-        if equipe_grdr_id:
+        # Récupérer la cellule GRDR si sélectionnée
+        cellule_grdr_id = request.POST.get('cellule_grdr')
+        cellule_grdr = None
+        if cellule_grdr_id:
             try:
-                equipe_grdr = EquipeGRDR.objects.get(id=equipe_grdr_id)
-            except EquipeGRDR.DoesNotExist:
+                cellule_grdr = CellulesGRDR.objects.get(id=cellule_grdr_id)
+            except CellulesGRDR.DoesNotExist:
                 pass
 
-        # Créer le projet
+        # Créer le projet (code_projet sera auto-généré)
         projet = Projet.objects.create(
-            code_projet=request.POST.get('code_projet'),
             libelle=request.POST.get('libelle'),
             description=request.POST.get('description', ''),
-            pays=request.POST.get('pays', 'Sénégal'),
-            equipe_grdr=equipe_grdr,
+            cellule_grdr=cellule_grdr,
             bailleurs=request.POST.get('bailleurs', ''),
-            zone_intervention=request.POST.get('zone_intervention', ''),
             date_debut=request.POST.get('date_debut'),
             date_fin=request.POST.get('date_fin'),
             budget=request.POST.get('budget') or None,
@@ -130,6 +127,30 @@ def creer_projet(request: HttpRequest) -> HttpResponse:
             statut='PLANIFIE',
             actif=True,
         )
+
+        # Gérer les zones géographiques multi-niveaux (ManyToMany)
+        # Récupérer les IDs sélectionnés pour chaque niveau
+        zone_pays_ids = request.POST.getlist('zone_pays')
+        zone_regions_ids = request.POST.getlist('zone_regions')
+        zone_departements_ids = request.POST.getlist('zone_departements')
+        zone_arrondissements_ids = request.POST.getlist('zone_arrondissements')
+        zone_communes_ids = request.POST.getlist('zone_communes')
+
+        # Ajouter les zones sélectionnées (si des IDs ont été fournis)
+        if zone_pays_ids:
+            projet.zone_pays.set([int(id) for id in zone_pays_ids if id])
+
+        if zone_regions_ids:
+            projet.zone_regions.set([int(id) for id in zone_regions_ids if id])
+
+        if zone_departements_ids:
+            projet.zone_departements.set([int(id) for id in zone_departements_ids if id])
+
+        if zone_arrondissements_ids:
+            projet.zone_arrondissements.set([int(id) for id in zone_arrondissements_ids if id])
+
+        if zone_communes_ids:
+            projet.zone_communes.set([int(id) for id in zone_communes_ids if id])
 
         # Lier l'utilisateur au projet comme admin
         UserProjet.objects.create(
@@ -144,16 +165,25 @@ def creer_projet(request: HttpRequest) -> HttpResponse:
         request.session['projet_code'] = projet.code_projet
         request.session['projet_libelle'] = projet.libelle
 
-        messages.success(request, f"Projet {projet.libelle} créé avec succès.")
+        messages.success(request, f"Projet {projet.libelle} créé avec succès (Code: {projet.code_projet}).")
 
         # Rediriger vers le wizard de configuration
         return redirect('creer_thematiques')
 
-    # GET : afficher le formulaire avec les équipes GRDR
-    equipes_grdr = EquipeGRDR.objects.filter(actif=True).order_by('type_equipe', 'pays', 'nom')
+    # GET : afficher le formulaire avec les pays et cellules GRDR
+    pays_list = Admin2.objects.all().order_by('name')
+
+    # Gérer le cas où la table cellules_grdr n'existe pas encore
+    try:
+        # IMPORTANT : Forcer l'évaluation de la requête avec list()
+        cellules_grdr = list(CellulesGRDR.objects.all().order_by('nom'))
+    except Exception as e:
+        # Si la table n'existe pas, on continue avec une liste vide
+        cellules_grdr = []
 
     context = {
-        'equipes_grdr': equipes_grdr,
+        'pays_list': pays_list,
+        'cellules_grdr': cellules_grdr,
     }
 
     return render(request, 'accueil/creer_projet.html', context)

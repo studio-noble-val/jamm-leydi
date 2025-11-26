@@ -2,7 +2,8 @@
 Administration des entités géolocalisées
 """
 from django.contrib.gis import admin as gis_admin
-from .models import Infrastructure, Acteur
+from django.contrib import admin
+from .models import Infrastructure, Acteur, Admin2, CellulesGRDR
 
 
 @gis_admin.register(Infrastructure)
@@ -84,3 +85,41 @@ class ActeurAdmin(gis_admin.GISModelAdmin):
             'classes': ('collapse',)
         })
     )
+
+
+@admin.register(Admin2)
+class Admin2Admin(gis_admin.GISModelAdmin):
+    """
+    Administration des pays (niveau Admin2 OSM)
+    Table en lecture seule (managed=False)
+    """
+    list_display = ('id', 'name', 'admin_leve', 'boundary')
+    search_fields = ('name', 'osm_id')
+    list_filter = ('admin_leve', 'boundary')
+    readonly_fields = ('id', 'osm_id', 'osm_way_id', 'name', 'type', 'admin_leve',
+                       'boundary', 'place', 'other_tags')
+
+    # Vue en lecture seule
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(CellulesGRDR)
+class CellulesGRDRAdmin(gis_admin.GISModelAdmin):
+    """
+    Administration des cellules GRDR
+    Table en lecture seule (managed=False)
+    """
+    list_display = ('id', 'nom')
+    search_fields = ('nom',)
+    readonly_fields = ('id', 'nom', 'geom')
+
+    # Vue en lecture seule
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
