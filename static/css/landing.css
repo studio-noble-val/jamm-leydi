@@ -34,20 +34,20 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 4rem 4rem;
+    padding: 2.88rem 2.88rem;
 }
 
 /* Header avec logo + titre alignés */
 .brand-header {
     display: flex;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2.16rem;
 }
 
 .logo-main {
-    height: 200px;
+    height: 144px;
     width: auto;
-    margin-right: 4rem;
+    margin-right: 2.88rem;
 }
 
 .brand-text {
@@ -58,20 +58,20 @@ body {
 /* Titre principal - style calligraphique comme le logo */
 .app-tagline {
     font-family: 'Caveat', cursive;
-    font-size: 3rem;
+    font-size: 2.16rem;
     color: var(--grdr-teal);
     font-weight: 600;
     line-height: 1.1;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.54rem;
 }
 
 /* Sous-titre discret */
 .app-name {
     font-family: 'Quicksand', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.08rem;
     font-weight: 500;
     color: #999;
-    letter-spacing: 3px;
+    letter-spacing: 2.16px;
     text-transform: uppercase;
 }
 
@@ -79,37 +79,37 @@ body {
 .features-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.72rem;
     width: 100%;
 }
 
 .feature-card {
     background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    border-left: 5px solid var(--grdr-orange);
+    border-radius: 5.76px;
+    padding: 0.72rem;
+    border-left: 3.6px solid var(--grdr-orange);
     transition: transform 0.2s ease;
 }
 
 .feature-card:hover {
-    transform: translateX(4px);
+    transform: translateX(2.88px);
 }
 
 .feature-card i {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     color: var(--grdr-orange);
-    margin-bottom: 1rem;
+    margin-bottom: 0.72rem;
 }
 
 .feature-card h6 {
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: 1rem;
     color: #333;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.36rem;
 }
 
 .feature-card p {
-    font-size: 1.1rem;
+    font-size: 0.79rem;
     color: #666;
     margin: 0;
     line-height: 1.4;
@@ -117,13 +117,13 @@ body {
 
 /* Partie droite - Login */
 .login-section {
-    width: 480px;
+    width: 345.6px;
     height: 100vh;
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem;
+    padding: 2.16rem;
     position: relative;
 }
 
@@ -132,55 +132,55 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 3px;
+    width: 2.16px;
     height: 100%;
     background: linear-gradient(180deg, var(--grdr-orange) 0%, var(--grdr-ocre) 100%);
 }
 
 .login-card {
     width: 100%;
-    max-width: 360px;
+    max-width: 259.2px;
 }
 
 .login-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.44rem;
 }
 
 .login-header h2 {
-    font-size: 1.8rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #fff;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.36rem;
 }
 
 .login-header p {
     color: rgba(255,255,255,0.5);
-    font-size: 1rem;
+    font-size: 0.72rem;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.08rem;
 }
 
 .form-label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.65rem;
     font-weight: 600;
     color: rgba(255,255,255,0.6);
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.43rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.36px;
 }
 
 .form-control {
     width: 100%;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 6px;
-    padding: 1rem 1.2rem;
+    border-radius: 4.32px;
+    padding: 0.72rem 0.86rem;
     color: #fff;
-    font-size: 1.05rem;
+    font-size: 0.76rem;
     font-family: 'Quicksand', sans-serif;
     transition: all 0.2s ease;
 }
@@ -193,50 +193,50 @@ body {
     outline: none;
     border-color: var(--grdr-orange);
     background: rgba(255,255,255,0.12);
-    box-shadow: 0 0 0 2px rgba(232, 109, 44, 0.2);
+    box-shadow: 0 0 0 1.44px rgba(232, 109, 44, 0.2);
 }
 
 .btn-login {
     width: 100%;
     background: linear-gradient(135deg, var(--grdr-orange) 0%, var(--grdr-orange-light) 100%);
     border: none;
-    border-radius: 6px;
-    padding: 1.1rem;
+    border-radius: 4.32px;
+    padding: 0.79rem;
     color: #fff;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 0.76rem;
     font-family: 'Quicksand', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.36px;
 }
 
 .btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(232, 109, 44, 0.4);
+    transform: translateY(-1.44px);
+    box-shadow: 0 4.32px 14.4px rgba(232, 109, 44, 0.4);
 }
 
 .login-footer {
     text-align: center;
-    margin-top: 1.5rem;
-    padding-top: 1.2rem;
+    margin-top: 1.08rem;
+    padding-top: 0.86rem;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .login-footer small {
     color: rgba(255,255,255,0.35);
-    font-size: 0.85rem;
+    font-size: 0.61rem;
 }
 
 .alert {
     background: rgba(220, 53, 69, 0.2);
     border: 1px solid rgba(220, 53, 69, 0.3);
-    border-radius: 6px;
-    padding: 0.9rem 1.1rem;
+    border-radius: 4.32px;
+    padding: 0.65rem 0.79rem;
     color: #ff6b6b;
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
+    font-size: 0.68rem;
+    margin-bottom: 1.08rem;
 }
 
 /* Responsive minimal - uniquement pour mobile/tablette */
@@ -245,7 +245,7 @@ body {
         flex-direction: column;
     }
     .branding-section {
-        padding: 2rem;
+        padding: 1.44rem;
     }
     .brand-header {
         flex-direction: column;
@@ -254,8 +254,8 @@ body {
     }
     .logo-main {
         margin-right: 0;
-        margin-bottom: 1rem;
-        height: 140px;
+        margin-bottom: 0.72rem;
+        height: 100.8px;
     }
     .login-section {
         width: 100%;

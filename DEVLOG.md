@@ -4,7 +4,127 @@
 
 ---
 
-## 📅 2025-11-26 : Sélection Géographique Multi-Niveaux en Cascade (FINALE)
+## 📅 2025-11-26 (Session 2) : Interface SIG Gaming Style Anno 1800 🎮
+
+### 🎯 Objectifs
+1. ✅ Refondre complètement l'interface cartographique avec un style gaming
+2. ✅ Implémenter une barre d'outils top style Anno 1800
+3. ✅ Ajouter drag & drop pour les panneaux
+4. ✅ Créer des indicateurs KPI visuels (R1/R2/R3)
+5. ✅ Appliquer la charte graphique GRDR avec cohérence
+
+### ✨ Réalisations
+
+#### 1. Barre d'Outils Gaming (Top Toolbar)
+**Fichier modifié** : `dashboard/templates/dashboard/carte_sig.html`
+
+**Architecture de la toolbar** :
+- **Section gauche** : Bouton retour (rouge) + séparateur + 3 boutons toggle (orange)
+- **Section centre** : Titre du projet centré absolument avec transform
+- **Section droite** : 3 indicateurs KPI en mini donuts
+
+**Style gaming** :
+- Fond sombre semi-transparent `rgba(26, 31, 46, 0.92)`
+- Bordure orange GRDR `rgba(232, 109, 44, 0.3)`
+- Glassmorphism avec `backdrop-filter: blur(12px)`
+- Ombres multiples pour profondeur
+
+**Boutons interactifs** :
+- Hover : élévation + intensification couleur
+- Active : gradient orange plein + scale icon
+- Transitions fluides `cubic-bezier(0.4, 0, 0.2, 1)`
+
+#### 2. Indicateurs KPI Mini Donuts (R1/R2/R3)
+**Technologie** : SVG circle avec `stroke-dasharray` et `stroke-dashoffset`
+
+**Design** :
+- R1 (75%) : Vert `#2ecc71`
+- R2 (50%) : Orange `#f39c12`
+- R3 (40%) : Rouge `#e74c3c`
+
+**Structure** :
+```html
+<svg width="36" height="36">
+    <circle class="bg" r="14" stroke="rgba(255,255,255,0.1)"></circle>
+    <circle class="progress" r="14" stroke-dashoffset="calculé"></circle>
+</svg>
+```
+
+**Calcul dynamique** : `offset = circumference - (percentage / 100 * circumference)`
+
+#### 3. Panneaux Latéraux avec Drag & Drop
+**3 panneaux disponibles** :
+- Fond de carte (7 options + relief 3D)
+- Géocommun (placeholder pour future session)
+- Données projet (communes, interventions, infrastructures, acteurs)
+
+**Système de drag** :
+- Drag depuis le header (cursor: move)
+- Contraintes fenêtre : `maxX`, `maxY`, `minY = 70px`
+- Z-index dynamique (999 pendant drag)
+- Classe `.dragging` désactive transitions
+
+**Code JavaScript** (~70 lignes) :
+```javascript
+header.addEventListener('mousedown', (e) => {
+    draggedPanel = panel;
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+});
+
+document.addEventListener('mousemove', (e) => {
+    const constrainedX = Math.max(0, Math.min(x, maxX));
+    const constrainedY = Math.max(70, Math.min(y, maxY));
+    draggedPanel.style.left = constrainedX + 'px';
+});
+```
+
+#### 4. Icône X de Fermeture des Panneaux
+**Style** :
+- Bouton rouge 24x24px aligné avec le titre
+- Background `rgba(231, 76, 60, 0.15)`
+- Font Awesome icon `.fa-times`
+- Hover : scale 1.1 + intensification
+
+**Fonction** :
+```javascript
+function closePanel(panelName, event) {
+    event.stopPropagation(); // Évite le drag
+    panel.classList.add('hidden');
+    toggleBtn.classList.remove('active');
+}
+```
+
+#### 5. Polish Final
+**Ajustements UX** :
+- ✅ Titre centré absolument (left: 50%, transform: translateX(-50%))
+- ✅ Contrôles MapLibre natifs conservés (top: 90px)
+- ✅ Suppression glows extérieurs pour style sobre
+- ✅ Icône X alignée avec header du panneau
+
+### 📁 Fichiers Modifiés
+- `dashboard/templates/dashboard/carte_sig.html` : Refonte complète UI (~1280 lignes)
+
+### 🎨 Charte Graphique Appliquée
+- Orange GRDR : `#E86D2C`
+- Teal GRDR : `#2A8B8B`
+- Rouge actions : `#e74c3c`
+- Police : Quicksand (400, 500, 600, 700)
+
+### 📊 Métriques
+- **Lignes CSS** : ~550 lignes de styles gaming
+- **JavaScript** : ~120 lignes (panel management + drag & drop)
+- **Fonctionnalités** : 8 interactions UX (toggle, drag, close, hover, etc.)
+
+### 🚀 Prochaines Étapes
+1. **P1** : Retravailler l'UI des indicateurs KPI (actuellement mini donuts basiques)
+2. Intégration Sentinel/Copernicus (couches satellitaires)
+3. Module Géocommun (données partagées)
+4. KoboToolbox API (import données terrain)
+
+---
+
+## 📅 2025-11-26 (Session 1) : Sélection Géographique Multi-Niveaux en Cascade (FINALE)
 
 ### 🎯 Objectifs
 1. ✅ Finaliser l'interface de sélection géographique en cascade

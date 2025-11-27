@@ -123,45 +123,13 @@
             margin: 0 8px;
         }
 
-        /* Center section - Project Title */
-        .toolbar-center {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .project-title-block {
-            background: linear-gradient(135deg, rgba(42, 139, 139, 0.15), rgba(42, 139, 139, 0.05));
-            border: 2px solid rgba(42, 139, 139, 0.4);
-            border-radius: 8px;
-            padding: 10px 30px;
-            box-shadow: 0 4px 12px rgba(42, 139, 139, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        .project-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-shadow: 0 2px 8px rgba(42, 139, 139, 0.5);
-            letter-spacing: 0.5px;
-            margin: 0;
-        }
-
-        .project-subtitle {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-align: center;
-            margin-top: 2px;
-            font-weight: 500;
-        }
-
-        /* Right section - KPI Indicators */
-        .toolbar-right {
-            display: flex;
-            gap: 12px;
-            flex: 0 0 auto;
+        /* Toolbar title */
+        .toolbar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            padding: 0 8px;
+            letter-spacing: 0.3px;
         }
 
         /* Gaming-style Panel Toggle Button */
@@ -211,63 +179,6 @@
         .panel-toggle-btn.active i {
             transform: scale(1.1);
         }
-
-        /* KPI Mini Donuts */
-        .kpi-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 12px;
-            background: linear-gradient(145deg, rgba(42, 139, 139, 0.1), rgba(42, 139, 139, 0.05));
-            border: 2px solid rgba(42, 139, 139, 0.3);
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(42, 139, 139, 0.2);
-            min-width: 80px;
-        }
-
-        .kpi-donut {
-            width: 36px;
-            height: 36px;
-            position: relative;
-        }
-
-        .kpi-donut svg {
-            transform: rotate(-90deg);
-        }
-
-        .kpi-donut circle {
-            fill: none;
-            stroke-width: 4;
-        }
-
-        .kpi-donut .bg {
-            stroke: rgba(255, 255, 255, 0.1);
-        }
-
-        .kpi-donut .progress {
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.5s ease;
-        }
-
-        .kpi-donut .value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .kpi-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
 
         /* ========== SIDE PANELS (Gaming Style) ========== */
         .side-panel {
@@ -341,11 +252,8 @@
         }
 
         .panel-close-icon {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -355,6 +263,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             color: rgba(231, 76, 60, 0.9);
+            margin-left: 12px;
         }
 
         .panel-close-icon:hover {
@@ -365,7 +274,7 @@
         }
 
         .panel-close-icon i {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             margin: 0;
         }
 
@@ -536,22 +445,6 @@
             right: 16px !important;
         }
 
-        .maplibregl-ctrl-group {
-            background: var(--gaming-panel) !important;
-            backdrop-filter: blur(12px) !important;
-            border: 2px solid var(--gaming-border) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
-        }
-
-        .maplibregl-ctrl-group button {
-            background: transparent !important;
-            color: white !important;
-        }
-
-        .maplibregl-ctrl-group button:hover {
-            background: rgba(232, 109, 44, 0.2) !important;
-        }
-
         /* Popup customization */
         .maplibregl-popup-content {
             background: var(--gaming-panel);
@@ -615,7 +508,7 @@
 
     <!-- ========== TOP TOOLBAR (Gaming Style) ========== -->
     <div class="top-toolbar">
-        <!-- Left Section - Panel Toggles -->
+        <!-- Left Section - Controls & Title -->
         <div class="toolbar-left">
             <div class="toolbar-back-btn" onclick="window.location.href='{% url 'dashboard_home' %}'">
                 <i class="fas fa-arrow-left"></i>
@@ -636,61 +529,11 @@
                 <i class="fas fa-database"></i>
                 <span>Données projet</span>
             </div>
-        </div>
 
-        <!-- Center Section - Project Title -->
-        <div class="toolbar-center">
-            <div class="project-title-block">
-                <div class="project-title">{{ projet.libelle }}</div>
-                <div class="project-subtitle">Centre de Commandement SIG • Kéniéba</div>
-            </div>
-        </div>
+            <div class="toolbar-separator"></div>
 
-        <!-- Right Section - KPI Indicators -->
-        <div class="toolbar-right">
-            <div class="kpi-indicator">
-                <div class="kpi-donut">
-                    <svg width="36" height="36">
-                        <circle class="bg" cx="18" cy="18" r="14"></circle>
-                        <circle class="progress" cx="18" cy="18" r="14"
-                                stroke="#2ecc71"
-                                stroke-dasharray="87.96"
-                                stroke-dashoffset="22"
-                                id="r1-circle"></circle>
-                    </svg>
-                    <div class="value" id="r1-value">75%</div>
-                </div>
-                <div class="kpi-label">R1</div>
-            </div>
-
-            <div class="kpi-indicator">
-                <div class="kpi-donut">
-                    <svg width="36" height="36">
-                        <circle class="bg" cx="18" cy="18" r="14"></circle>
-                        <circle class="progress" cx="18" cy="18" r="14"
-                                stroke="#f39c12"
-                                stroke-dasharray="87.96"
-                                stroke-dashoffset="44"
-                                id="r2-circle"></circle>
-                    </svg>
-                    <div class="value" id="r2-value">50%</div>
-                </div>
-                <div class="kpi-label">R2</div>
-            </div>
-
-            <div class="kpi-indicator">
-                <div class="kpi-donut">
-                    <svg width="36" height="36">
-                        <circle class="bg" cx="18" cy="18" r="14"></circle>
-                        <circle class="progress" cx="18" cy="18" r="14"
-                                stroke="#e74c3c"
-                                stroke-dasharray="87.96"
-                                stroke-dashoffset="53"
-                                id="r3-circle"></circle>
-                    </svg>
-                    <div class="value" id="r3-value">40%</div>
-                </div>
-                <div class="kpi-label">R3</div>
+            <div class="toolbar-title">
+                {{ projet.libelle }}
             </div>
         </div>
     </div>
